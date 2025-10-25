@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getProperties } from "../api";
 import PropertyCard from "../components/PropertyCard";
+import FeaturedProperties from "./FeaturedProperties";
 
 export default function PropertyList() {
   const [properties, setProperties] = useState([]);
@@ -14,7 +15,6 @@ export default function PropertyList() {
     getProperties().then((res) => setProperties(res.data));
   }, []);
 
-  // get unique cities for city filter dropdown
   const cities = [...new Set(properties.map((p) => p.city))];
 
   const filtered = properties
@@ -33,16 +33,16 @@ export default function PropertyList() {
       return matchesSearch && matchesCategory && matchesCity;
     })
     .sort((a, b) => {
-      if (sort === "price") return a.attributes.price - b.attributes.price;
+      if (sort === "price")
+        return (a.attributes?.price || 0) - (b.attributes?.price || 0);
       if (sort === "name") return a.title.localeCompare(b.title);
       return 0;
     });
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
+    <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Controls */}
       <div className="flex flex-wrap gap-4 justify-between items-center mb-6">
-        {/* Search */}
         <input
           type="text"
           placeholder="Search by title, city or category..."
@@ -51,7 +51,6 @@ export default function PropertyList() {
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        {/* Sort */}
         <select
           className="border rounded-lg px-4 py-2"
           value={sort}
@@ -62,7 +61,6 @@ export default function PropertyList() {
           <option value="price">Price</option>
         </select>
 
-        {/* Category Filter */}
         <select
           className="border rounded-lg px-4 py-2"
           value={categoryFilter}
@@ -86,7 +84,6 @@ export default function PropertyList() {
           ))}
         </select>
 
-        {/* City Filter */}
         <select
           className="border rounded-lg px-4 py-2"
           value={cityFilter}
@@ -100,7 +97,6 @@ export default function PropertyList() {
           ))}
         </select>
 
-        {/* View Mode */}
         <div className="flex gap-2">
           <button
             className={`px-3 py-2 rounded-lg border ${
@@ -121,16 +117,23 @@ export default function PropertyList() {
         </div>
       </div>
 
-      {/* Property List */}
+      {/* Property Cards */}
       <div
         className={`grid gap-6 ${
-          viewMode === "grid" ? "sm:grid-cols-2 md:grid-cols-3" : "grid-cols-1"
+          viewMode === "grid" ? "sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
         }`}
       >
         {filtered.map((p) => (
           <PropertyCard key={p._id} property={p} viewMode={viewMode} />
         ))}
       </div>
+
+      {filtered.length === 0 && (
+        <div className="text-center text-gray-500 mt-6">
+          No properties found.
+        </div>
+      )}
+      <div><FeaturedProperties/></div>
     </div>
   );
 }
