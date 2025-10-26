@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getProperties } from "../api";
+import { getProperties } from "../api/axios"
 import PropertyCard from "../components/PropertyCard";
 
 export default function FeaturedProperties() {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-
+import API, { createProperty } from "../api/axios"; 
 const categoryFields = {
   Flat: ["bedrooms", "bathrooms", "floors", "square", "garden", "balcony"],
   Villa: ["bedrooms", "bathrooms", "floors", "square", "garden", "balcony"],
@@ -137,7 +137,7 @@ export default function AddProperty() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -145,6 +145,8 @@ export default function AddProperty() {
 
     try {
       const data = new FormData();
+      
+      console.log('Starting property submission...');
       
       // Filter out empty nearby values
       const filteredNearby = Object.fromEntries(
@@ -171,6 +173,8 @@ export default function AddProperty() {
       // Remove priceOnRequest from final data as it's only for UI
       delete submitData.priceOnRequest;
 
+      console.log('Prepared data:', submitData);
+
       // Append all data to FormData
       for (let key in submitData) {
         if (["attributes", "coordinates", "distanceKey", "features", "nearby"].includes(key)) {
@@ -181,14 +185,17 @@ export default function AddProperty() {
       }
 
       // Append images
-      images.forEach(img => data.append("images", img));
-
-      const res = await axios.post("/api/properties", data, {
-        headers: {
-          "Content-Type": "multipart/form-data"
-        }
+      images.forEach(img => {
+        console.log('Appending image:', img.name);
+        data.append("images", img);
       });
 
+      console.log('Sending request to backend...');
+
+      // Use the specific createProperty function
+      const res = await createProperty(data);
+      
+      console.log('Property created successfully:', res.data);
       setSuccess("Property added successfully!");
       
       // Reset form
@@ -228,8 +235,21 @@ export default function AddProperty() {
       setDistanceInput("");
       
     } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.message || "Error adding property");
+      console.error('Full error details:', err);
+      console.error('Error response:', err.response);
+      
+      // More detailed error message
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data?.error?.message || 
+                          err.message || 
+                          "Error adding property";
+      
+      setError(`Failed to add property: ${errorMessage}`);
+      
+      // Log additional details for debugging
+      if (err.response?.data?.error) {
+        console.error('Backend error details:', err.response.data.error);
+      }
     } finally {
       setLoading(false);
     }
