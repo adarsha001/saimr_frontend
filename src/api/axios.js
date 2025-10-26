@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Use environment variable or fallback to localhost:5000
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const BASE_URL = import.meta.env.VITE_API_URL || "https://saimr-backend-1.onrender.com";
 
 const API = axios.create({
   baseURL: `${BASE_URL}/api`,
