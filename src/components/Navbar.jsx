@@ -5,6 +5,7 @@ import { useState } from 'react';
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleAddPropertyClick = (e) => {
     if (!user) {
@@ -12,68 +13,208 @@ export default function Navbar() {
       setShowTooltip(true);
       setTimeout(() => setShowTooltip(false), 3000);
     }
+    // Close mobile menu when clicking on a link
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleNavLinkClick = () => {
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIsMobileMenuOpen(false);
   };
 
   return (
-    <nav className="flex items-center justify-between bg-blue-600 text-white p-4">
-      <Link to="/" className="text-lg font-bold flex items-center space-x-2">
-        <span>🏡</span>
-        <span>RealEstate</span>
-      </Link>
-      <div className="space-x-4 flex items-center">
-        <Link to="/" className="hover:text-blue-200 transition-colors">Properties</Link>
-        
-        {/* Add Property with Tooltip */}
-        <div className="relative">
+    <nav className="bg-blue-600 text-white shadow-lg">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
           <Link 
-            to={user ? "/add-property" : "#"}
-            onClick={handleAddPropertyClick}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              user 
-                ? "bg-white text-blue-600 hover:bg-blue-50" 
-                : "bg-gray-400 text-white cursor-not-allowed hover:bg-gray-500"
-            }`}
+            to="/" 
+            className="flex items-center space-x-2 text-lg font-bold hover:text-blue-200 transition-colors"
+            onClick={handleNavLinkClick}
           >
-            Add Property
+            <span className="text-xl">🏡</span>
+            <span className="hidden sm:block">RealEstate</span>
           </Link>
-          
-          {/* Tooltip for non-logged in users */}
-          {showTooltip && !user && (
-            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gray-800 text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap z-50">
-              Please login to add property
-              <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-4">
+            <Link 
+              to="/" 
+              className="hover:text-blue-200 transition-colors px-3 py-2 rounded-md text-sm font-medium"
+            >
+              Properties
+            </Link>
+            
+            {/* Add Property with Tooltip */}
+            <div className="relative">
+              <Link 
+                to={user ? "/add-property" : "#"}
+                onClick={handleAddPropertyClick}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  user 
+                    ? "bg-white text-blue-600 hover:bg-blue-50" 
+                    : "bg-gray-400 text-white cursor-not-allowed hover:bg-gray-500"
+                }`}
+              >
+                Add Property
+              </Link>
+              
+              {/* Tooltip for non-logged in users */}
+              {showTooltip && !user && (
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gray-800 text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap z-50">
+                  Please login to add property
+                  <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
+                </div>
+              )}
             </div>
+            
+            {user ? (
+              <>
+                <Link 
+                  to="/profile" 
+                  className="hover:text-blue-200 transition-colors px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Welcome, {user.username}
+                </Link>
+                <button 
+                  onClick={handleLogout} 
+                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded transition-colors text-sm font-medium"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link 
+                  to="/login" 
+                  className="hover:text-blue-200 transition-colors px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Login
+                </Link>
+                <Link 
+                  to="/register" 
+                  className="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors text-sm"
+                >
+                  Register
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden flex items-center">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="inline-flex items-center justify-center p-2 rounded-md hover:text-blue-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              aria-expanded="false"
+            >
+              <span className="sr-only">Open main menu</span>
+              {/* Hamburger icon */}
+              <svg
+                className={`${isMobileMenuOpen ? 'hidden' : 'block'} h-6 w-6`}
+                stroke="currentColor"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+              {/* Close icon */}
+              <svg
+                className={`${isMobileMenuOpen ? 'block' : 'hidden'} h-6 w-6`}
+                stroke="currentColor"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Navigation Menu */}
+      <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden bg-blue-700 border-t border-blue-500`}>
+        <div className="px-2 pt-2 pb-3 space-y-1">
+          <Link
+            to="/"
+            className="block px-3 py-2 rounded-md text-base font-medium hover:text-blue-200 hover:bg-blue-600 transition-colors"
+            onClick={handleNavLinkClick}
+          >
+            Properties
+          </Link>
+
+          {/* Add Property for Mobile */}
+          <div className="relative">
+            <Link
+              to={user ? "/add-property" : "#"}
+              onClick={handleAddPropertyClick}
+              className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                user 
+                  ? "bg-white text-blue-600 hover:bg-blue-50" 
+                  : "bg-gray-400 text-white cursor-not-allowed"
+              }`}
+            >
+              Add Property
+            </Link>
+            
+            {/* Mobile Tooltip */}
+            {showTooltip && !user && (
+              <div className="absolute left-0 right-0 mt-2 mx-2 bg-gray-800 text-white text-sm px-3 py-2 rounded-lg z-50">
+                Please login to add property
+                <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-800 rotate-45"></div>
+              </div>
+            )}
+          </div>
+
+          {user ? (
+            <>
+              <Link
+                to="/profile"
+                className="block px-3 py-2 rounded-md text-base font-medium hover:text-blue-200 hover:bg-blue-600 transition-colors"
+                onClick={handleNavLinkClick}
+              >
+                Welcome, {user.username}
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium bg-red-500 hover:bg-red-600 text-white transition-colors"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="block px-3 py-2 rounded-md text-base font-medium hover:text-blue-200 hover:bg-blue-600 transition-colors"
+                onClick={handleNavLinkClick}
+              >
+                Login
+              </Link>
+              <Link
+                to="/register"
+                className="block px-3 py-2 rounded-md text-base font-medium bg-white text-blue-600 hover:bg-blue-50 transition-colors"
+                onClick={handleNavLinkClick}
+              >
+                Register
+              </Link>
+            </>
           )}
         </div>
-        
-        {user ? (
-          <>
-            <Link to="/profile" className="hover:text-blue-200 transition-colors">
-              Welcome, {user.username}
-            </Link>
-            <button 
-              onClick={logout} 
-              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition-colors"
-            >
-              Logout
-            </button>
-          </>
-        ) : (
-          <>
-            <Link 
-              to="/login" 
-              className="hover:text-blue-200 transition-colors"
-            >
-              Login
-            </Link>
-            <Link 
-              to="/register" 
-              className="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors"
-            >
-              Register
-            </Link>
-          </>
-        )}
       </div>
     </nav>
   );

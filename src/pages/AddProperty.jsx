@@ -1,27 +1,31 @@
 import { useState } from "react";
-import axios from "axios";
-import API, { createProperty } from "../api/axios"; 
+import { createProperty } from "../api/axios"; 
+
+// Updated category fields for non-residential properties
 const categoryFields = {
-  Flat: ["bedrooms", "bathrooms", "floors", "square", "garden", "balcony"],
-  Villa: ["bedrooms", "bathrooms", "floors", "square", "garden", "balcony"],
-  House: ["bedrooms", "bathrooms", "floors", "square", "garden", "balcony"],
-  Lease: ["bedrooms", "bathrooms", "floors", "square", "leaseDuration", "garden", "balcony"],
-  Outrade: ["square", "typeOfJV", "expectedROI"],
-  Commercial: ["square", "floors"],
-  Plots: ["square"],
-  Farmland: ["square", "irrigationAvailable"],
-  "JD/JV": ["square", "typeOfJV", "expectedROI"],
+  Outright: ["square", "propertyLabel", "facing", "roadWidth", "legalClearance"],
+  Commercial: ["square", "propertyLabel", "expectedROI", "facing", "roadWidth", "legalClearance"],
+  Farmland: ["square", "propertyLabel", "irrigationAvailable", "waterSource", "soilType", "legalClearance"],
+  "JD/JV": ["square", "propertyLabel", "typeOfJV", "expectedROI", "legalClearance"],
 };
 
+// Updated features based on backend schema
 const allFeatures = [
-  "Wifi", "Parking", "Swimming pool", "Balcony", "Garden", "Security", "Fitness center",
-  "Children's Play Area", "Indore Games", "Laundry Room", "Pets Allow", "Spa & Massage",
-  "Electricity", "Gated Community", "Street Lamp", "Drainage", "Tennis Court", "Lift(s)",
-  "Golf Course", "Jogging Track", "Club House", "Senior Citizen Siteout", "Squash Court",
-  "Yoga / Meditation Area", "Jacuzzi", "Mini Theatre"
+  // Commercial Features
+  "Conference Room", "CCTV Surveillance", "Power Backup", "Fire Safety",
+  "Cafeteria", "Reception Area", "Parking", "Lift(s)",
+  
+  // Farmland Features
+  "Borewell", "Fencing", "Electricity Connection", "Water Source",
+  "Drip Irrigation", "Storage Shed",
+  
+  // Outright / JD/JV Features
+  "Highway Access", "Legal Assistance", "Joint Development Approved",
+  "Investor Friendly", "Gated Boundary"
 ];
 
-const allNearby = ["Hospital", "SuperMarket", "School", "Airport", "BusStop", "Pharmacy", "Metro"];
+// Updated nearby locations based on backend schema
+const allNearby = ["Highway", "Airport", "BusStop", "Metro", "CityCenter", "IndustrialArea"];
 
 export default function AddProperty() {
   const [formData, setFormData] = useState({
@@ -35,29 +39,28 @@ export default function AddProperty() {
       longitude: ""
     },
     mapUrl: "",
-    category: "Flat",
-    price: "", // Can be number or "Price on Request"
-    priceOnRequest: false, // New field to track price on request
+    category: "Outright",
+    price: "",
+    priceOnRequest: false,
     isFeatured: false,
     forSale: true,
     isVerified: false,
     attributes: {
-      bedrooms: "",
-      bathrooms: "",
-      floors: "",
       square: "",
       propertyLabel: "",
       leaseDuration: "",
       typeOfJV: "",
       expectedROI: "",
-      garden: false,
       irrigationAvailable: false,
-      balcony: false,
+      facing: "",
+      roadWidth: "",
+      waterSource: "",
+      soilType: "",
+      legalClearance: false,
     },
     distanceKey: [],
     features: [],
     nearby: allNearby.reduce((acc, key) => ({ ...acc, [key]: "" }), {}),
-    createdBy: "",
   });
 
   const [distanceInput, setDistanceInput] = useState("");
@@ -102,7 +105,6 @@ export default function AddProperty() {
         : formData.features.filter(f => f !== value);
       setFormData(prev => ({ ...prev, features: updatedFeatures }));
     } else if (name === "priceOnRequest") {
-      // When price on request is checked, clear the price field
       setFormData(prev => ({
         ...prev,
         priceOnRequest: checked,
@@ -137,7 +139,31 @@ export default function AddProperty() {
     }));
   };
 
- const handleSubmit = async (e) => {
+  // Filter features based on selected category
+  const getFilteredFeatures = () => {
+    const categoryFeatureMap = {
+      Commercial: [
+        "Conference Room", "CCTV Surveillance", "Power Backup", "Fire Safety",
+        "Cafeteria", "Reception Area", "Parking", "Lift(s)"
+      ],
+      Farmland: [
+        "Borewell", "Fencing", "Electricity Connection", "Water Source",
+        "Drip Irrigation", "Storage Shed"
+      ],
+      Outright: [
+        "Highway Access", "Legal Assistance", "Joint Development Approved",
+        "Investor Friendly", "Gated Boundary"
+      ],
+      "JD/JV": [
+        "Highway Access", "Legal Assistance", "Joint Development Approved",
+        "Investor Friendly", "Gated Boundary"
+      ]
+    };
+    
+    return categoryFeatureMap[formData.category] || allFeatures;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -156,18 +182,19 @@ export default function AddProperty() {
       // Prepare data for submission
       const submitData = {
         ...formData,
-        // Handle price - if it's "Price on Request", send as string, otherwise as number
         price: formData.priceOnRequest ? "Price on Request" : (formData.price ? parseFloat(formData.price) : ""),
         nearby: filteredNearby,
         // Convert string numbers to actual numbers for attributes
         attributes: {
           ...formData.attributes,
-          bedrooms: formData.attributes.bedrooms ? parseInt(formData.attributes.bedrooms) : "",
-          bathrooms: formData.attributes.bathrooms ? parseInt(formData.attributes.bathrooms) : "",
-          floors: formData.attributes.floors ? parseInt(formData.attributes.floors) : "",
           square: formData.attributes.square ? parseInt(formData.attributes.square) : "",
           expectedROI: formData.attributes.expectedROI ? parseFloat(formData.attributes.expectedROI) : "",
-        }
+          roadWidth: formData.attributes.roadWidth ? parseFloat(formData.attributes.roadWidth) : "",
+        },
+        // Filter features to only include valid ones for the category
+        features: formData.features.filter(feature => 
+          getFilteredFeatures().includes(feature)
+        )
       };
 
       // Remove priceOnRequest from final data as it's only for UI
@@ -207,29 +234,28 @@ export default function AddProperty() {
         propertyLocation: "",
         coordinates: { latitude: "", longitude: "" },
         mapUrl: "",
-        category: "Flat",
+        category: "Outright",
         price: "",
         priceOnRequest: false,
         isFeatured: false,
         forSale: true,
         isVerified: false,
         attributes: {
-          bedrooms: "",
-          bathrooms: "",
-          floors: "",
           square: "",
           propertyLabel: "",
           leaseDuration: "",
           typeOfJV: "",
           expectedROI: "",
-          garden: false,
           irrigationAvailable: false,
-          balcony: false,
+          facing: "",
+          roadWidth: "",
+          waterSource: "",
+          soilType: "",
+          legalClearance: false,
         },
         distanceKey: [],
         features: [],
         nearby: allNearby.reduce((acc, key) => ({ ...acc, [key]: "" }), {}),
-        createdBy: "",
       });
       setImages([]);
       setDistanceInput("");
@@ -238,7 +264,6 @@ export default function AddProperty() {
       console.error('Full error details:', err);
       console.error('Error response:', err.response);
       
-      // More detailed error message
       const errorMessage = err.response?.data?.message || 
                           err.response?.data?.error?.message || 
                           err.message || 
@@ -246,16 +271,13 @@ export default function AddProperty() {
       
       setError(`Failed to add property: ${errorMessage}`);
       
-      // Log additional details for debugging
-      if (err.response?.data?.error) {
-        console.error('Backend error details:', err.response.data.error);
-      }
     } finally {
       setLoading(false);
     }
   };
 
   const visibleAttributes = categoryFields[formData.category];
+  const filteredFeatures = getFilteredFeatures();
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-xl">
@@ -280,16 +302,18 @@ export default function AddProperty() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Category</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Category *</label>
               <select 
                 name="category" 
                 value={formData.category} 
                 onChange={handleChange}
                 className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
               >
-                {Object.keys(categoryFields).map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
+                <option value="Outright">Outright</option>
+                <option value="Commercial">Commercial</option>
+                <option value="Farmland">Farmland</option>
+                <option value="JD/JV">JD/JV</option>
               </select>
             </div>
 
@@ -308,7 +332,7 @@ export default function AddProperty() {
 
             {/* Price Field with Price on Request Option */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-600 mb-1">Price</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Price *</label>
               <div className="flex flex-col space-y-2">
                 <div className="flex items-center space-x-2">
                   <input 
@@ -321,6 +345,7 @@ export default function AddProperty() {
                     className={`w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                       formData.priceOnRequest ? "bg-gray-100 cursor-not-allowed" : ""
                     }`}
+                    required={!formData.priceOnRequest}
                   />
                 </div>
                 <label className="flex items-center space-x-2">
@@ -372,51 +397,9 @@ export default function AddProperty() {
         <div className="bg-gray-50 p-6 rounded-lg">
           <h2 className="text-xl font-semibold text-gray-700 mb-4">Property Details</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {visibleAttributes.includes("bedrooms") && (
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Bedrooms</label>
-                <input 
-                  type="number" 
-                  name="attributes.bedrooms" 
-                  placeholder="0" 
-                  value={formData.attributes.bedrooms} 
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 p-3 rounded-lg"
-                />
-              </div>
-            )}
-            
-            {visibleAttributes.includes("bathrooms") && (
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Bathrooms</label>
-                <input 
-                  type="number" 
-                  name="attributes.bathrooms" 
-                  placeholder="0" 
-                  value={formData.attributes.bathrooms} 
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 p-3 rounded-lg"
-                />
-              </div>
-            )}
-            
-            {visibleAttributes.includes("floors") && (
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Floors</label>
-                <input 
-                  type="number" 
-                  name="attributes.floors" 
-                  placeholder="0" 
-                  value={formData.attributes.floors} 
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 p-3 rounded-lg"
-                />
-              </div>
-            )}
-            
             {visibleAttributes.includes("square") && (
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Square Feet</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Square Feet *</label>
                 <input 
                   type="number" 
                   name="attributes.square" 
@@ -424,18 +407,19 @@ export default function AddProperty() {
                   value={formData.attributes.square} 
                   onChange={handleChange}
                   className="w-full border border-gray-300 p-3 rounded-lg"
+                  required
                 />
               </div>
             )}
             
-            {visibleAttributes.includes("leaseDuration") && (
+            {visibleAttributes.includes("propertyLabel") && (
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Lease Duration</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Property Label</label>
                 <input 
                   type="text" 
-                  name="attributes.leaseDuration" 
-                  placeholder="e.g., 12 months" 
-                  value={formData.attributes.leaseDuration} 
+                  name="attributes.propertyLabel" 
+                  placeholder="e.g., Premium, Budget, etc." 
+                  value={formData.attributes.propertyLabel} 
                   onChange={handleChange}
                   className="w-full border border-gray-300 p-3 rounded-lg"
                 />
@@ -444,7 +428,7 @@ export default function AddProperty() {
             
             {visibleAttributes.includes("typeOfJV") && (
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Type of JV</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Type of JV *</label>
                 <input 
                   type="text" 
                   name="attributes.typeOfJV" 
@@ -452,6 +436,7 @@ export default function AddProperty() {
                   value={formData.attributes.typeOfJV} 
                   onChange={handleChange}
                   className="w-full border border-gray-300 p-3 rounded-lg"
+                  required
                 />
               </div>
             )}
@@ -471,34 +456,65 @@ export default function AddProperty() {
               </div>
             )}
             
+            {visibleAttributes.includes("facing") && (
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Facing Direction</label>
+                <input 
+                  type="text" 
+                  name="attributes.facing" 
+                  placeholder="e.g., East, North, etc." 
+                  value={formData.attributes.facing} 
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 p-3 rounded-lg"
+                />
+              </div>
+            )}
+            
+            {visibleAttributes.includes("roadWidth") && (
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Road Width (ft)</label>
+                <input 
+                  type="number" 
+                  step="0.1"
+                  name="attributes.roadWidth" 
+                  placeholder="0.0" 
+                  value={formData.attributes.roadWidth} 
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 p-3 rounded-lg"
+                />
+              </div>
+            )}
+            
+            {visibleAttributes.includes("waterSource") && (
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Water Source</label>
+                <input 
+                  type="text" 
+                  name="attributes.waterSource" 
+                  placeholder="e.g., Borewell, Municipal, etc." 
+                  value={formData.attributes.waterSource} 
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 p-3 rounded-lg"
+                />
+              </div>
+            )}
+            
+            {visibleAttributes.includes("soilType") && (
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Soil Type</label>
+                <input 
+                  type="text" 
+                  name="attributes.soilType" 
+                  placeholder="e.g., Black soil, Red soil, etc." 
+                  value={formData.attributes.soilType} 
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 p-3 rounded-lg"
+                />
+              </div>
+            )}
+            
             {/* Checkbox attributes */}
-            <div className="flex flex-col space-y-2">
-              {visibleAttributes.includes("garden") && (
-                <label className="flex items-center space-x-2">
-                  <input 
-                    type="checkbox" 
-                    name="attributes.garden" 
-                    checked={formData.attributes.garden} 
-                    onChange={handleChange}
-                    className="rounded border-gray-300"
-                  />
-                  <span className="text-gray-700">Garden</span>
-                </label>
-              )}
-              
-              {visibleAttributes.includes("balcony") && (
-                <label className="flex items-center space-x-2">
-                  <input 
-                    type="checkbox" 
-                    name="attributes.balcony" 
-                    checked={formData.attributes.balcony} 
-                    onChange={handleChange}
-                    className="rounded border-gray-300"
-                  />
-                  <span className="text-gray-700">Balcony</span>
-                </label>
-              )}
-              
+            <div className="flex flex-col space-y-2 md:col-span-2 lg:col-span-3">
               {visibleAttributes.includes("irrigationAvailable") && (
                 <label className="flex items-center space-x-2">
                   <input 
@@ -511,6 +527,19 @@ export default function AddProperty() {
                   <span className="text-gray-700">Irrigation Available</span>
                 </label>
               )}
+              
+              {visibleAttributes.includes("legalClearance") && (
+                <label className="flex items-center space-x-2">
+                  <input 
+                    type="checkbox" 
+                    name="attributes.legalClearance" 
+                    checked={formData.attributes.legalClearance} 
+                    onChange={handleChange}
+                    className="rounded border-gray-300"
+                  />
+                  <span className="text-gray-700">Legal Clearance Obtained</span>
+                </label>
+              )}
             </div>
           </div>
         </div>
@@ -519,7 +548,7 @@ export default function AddProperty() {
         <div className="bg-gray-50 p-6 rounded-lg">
           <h2 className="text-xl font-semibold text-gray-700 mb-4">Features & Amenities</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {allFeatures.map(feature => (
+            {filteredFeatures.map(feature => (
               <label key={feature} className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded">
                 <input 
                   type="checkbox" 
@@ -533,6 +562,9 @@ export default function AddProperty() {
               </label>
             ))}
           </div>
+          {filteredFeatures.length === 0 && (
+            <p className="text-gray-500 text-center py-4">No features available for this category</p>
+          )}
         </div>
 
         {/* Nearby Locations Section */}
@@ -635,13 +667,14 @@ export default function AddProperty() {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Property Images</label>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Property Images *</label>
             <input 
               type="file" 
               multiple 
               accept="image/*" 
               onChange={handleImages}
               className="w-full border border-gray-300 p-3 rounded-lg"
+              required
             />
             <p className="text-sm text-gray-500 mt-1">Select multiple images for the property</p>
           </div>

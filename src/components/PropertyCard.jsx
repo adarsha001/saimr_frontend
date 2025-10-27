@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLikes } from "../context/LikesContext";
 import { toast } from "react-hot-toast";
+import { Building, Sprout, Handshake, LandPlot, MapPin, ExternalLink, Ruler } from "lucide-react";
 
-export default function PropertyCard({ property, viewMode }) {
+export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { 
@@ -27,11 +28,17 @@ export default function PropertyCard({ property, viewMode }) {
     propertyLocation,
     mapUrl,
     isVerified,
+    price,
+    forSale,
+    isFeatured
   } = property;
 
-  const price = attributes?.price
-    ? `₹${(attributes.price / 100000).toFixed(2)}L`
-    : "Price on Request";
+  // Format price - handle both numbers and "Price on Request"
+  const formattedPrice = price === "Price on Request" 
+    ? "Price on Request"
+    : typeof price === 'number' 
+      ? `₹${(price / 100000).toFixed(2)}L`
+      : "Contact for Price";
 
   // Check if property is liked using global state
   const isLiked = isPropertyLiked(_id);
@@ -69,6 +76,52 @@ export default function PropertyCard({ property, viewMode }) {
     setShowLoginTooltip(false);
   };
 
+  // Get category-specific details
+  const getCategoryDetails = () => {
+    switch (category) {
+      case "Commercial":
+        return {
+          icon: <Building className="w-4 h-4" />,
+          details: [
+            attributes?.expectedROI && `ROI: ${attributes.expectedROI}%`,
+            attributes?.floors && `${attributes.floors} floors`,
+            attributes?.propertyLabel
+          ].filter(Boolean)
+        };
+      case "Farmland":
+        return {
+          icon: <Sprout className="w-4 h-4" />,
+          details: [
+            attributes?.irrigationAvailable && "Irrigation Available",
+            attributes?.waterSource,
+            attributes?.soilType
+          ].filter(Boolean)
+        };
+      case "JD/JV":
+        return {
+          icon: <Handshake className="w-4 h-4" />,
+          details: [
+            attributes?.typeOfJV,
+            attributes?.expectedROI && `Expected ROI: ${attributes.expectedROI}%`,
+            attributes?.legalClearance && "Legal Clearance"
+          ].filter(Boolean)
+        };
+      case "Outright":
+        return {
+          icon: <LandPlot className="w-4 h-4" />,
+          details: [
+            attributes?.facing && `Facing: ${attributes.facing}`,
+            attributes?.roadWidth && `Road: ${attributes.roadWidth}ft`,
+            attributes?.legalClearance && "Legal Clearance"
+          ].filter(Boolean)
+        };
+      default:
+        return { icon: <LandPlot className="w-4 h-4" />, details: [] };
+    }
+  };
+
+  const categoryDetails = getCategoryDetails();
+
   // List View Layout
   if (viewMode === "list") {
     return (
@@ -104,7 +157,13 @@ export default function PropertyCard({ property, viewMode }) {
                   Verified
                 </div>
               )}
-              <div className="bg-white/95 backdrop-blur-sm text-gray-800 px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">
+              {isFeatured && (
+                <div className="flex items-center gap-1 bg-yellow-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">
+                  ⭐ Featured
+                </div>
+              )}
+              <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm text-gray-800 px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">
+                {getCategoryIcon ? getCategoryIcon(category) : categoryDetails.icon}
                 {category}
               </div>
             </div>
@@ -159,11 +218,13 @@ export default function PropertyCard({ property, viewMode }) {
               </h3>
               
               <div className="flex items-center gap-2 text-gray-600 mb-1">
-                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
+                <MapPin className="w-4 h-4 text-blue-500" />
                 <span className="text-sm font-medium">{city}</span>
+                {!forSale && (
+                  <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                    For Lease
+                  </span>
+                )}
               </div>
 
               {propertyLocation && (
@@ -171,37 +232,25 @@ export default function PropertyCard({ property, viewMode }) {
               )}
 
               {/* Property Details */}
-              {(attributes?.bedrooms || attributes?.bathrooms || attributes?.square) && (
-                <div className="flex flex-wrap gap-4 mb-4 pb-4 border-b border-gray-100">
-                  {attributes.bedrooms > 0 && (
-                    <div className="flex items-center gap-2 text-gray-700">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                      </svg>
-                      <span className="font-semibold">{attributes.bedrooms}</span>
-                      <span className="text-sm text-gray-500">Beds</span>
-                    </div>
-                  )}
-                  {attributes.bathrooms > 0 && (
-                    <div className="flex items-center gap-2 text-gray-700">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span className="font-semibold">{attributes.bathrooms}</span>
-                      <span className="text-sm text-gray-500">Baths</span>
-                    </div>
-                  )}
-                  {attributes.square > 0 && (
-                    <div className="flex items-center gap-2 text-gray-700">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
-                      </svg>
-                      <span className="font-semibold">{attributes.square.toLocaleString()}</span>
-                      <span className="text-sm text-gray-500">sqft</span>
-                    </div>
-                  )}
-                </div>
-              )}
+              <div className="flex flex-wrap gap-4 mb-4 pb-4 border-b border-gray-100">
+                {/* Square Footage */}
+                {attributes?.square > 0 && (
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <Ruler className="w-5 h-5 text-blue-500" />
+                    <span className="font-semibold">{attributes.square.toLocaleString()}</span>
+                    <span className="text-sm text-gray-500">sqft</span>
+                  </div>
+                )}
+
+                {/* Category-specific details */}
+                {categoryDetails.details.slice(0, 2).map((detail, index) => (
+                  <div key={index} className="flex items-center gap-2 text-gray-700">
+                    <span className="text-sm font-medium bg-gray-100 px-3 py-1 rounded-full">
+                      {detail}
+                    </span>
+                  </div>
+                ))}
+              </div>
 
               {mapUrl && (
                 <a
@@ -211,9 +260,7 @@ export default function PropertyCard({ property, viewMode }) {
                   className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-medium hover:underline mb-4"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
+                  <ExternalLink className="w-4 h-4" />
                   View on Map
                 </a>
               )}
@@ -221,10 +268,16 @@ export default function PropertyCard({ property, viewMode }) {
 
             <div className="flex items-center justify-between mt-2">
               <div>
-                <div className="text-3xl font-bold text-blue-600">{price}</div>
-                {attributes?.price && attributes?.square && (
+                <div className={`text-3xl font-bold ${
+                  formattedPrice === "Price on Request" || formattedPrice === "Contact for Price"
+                    ? "text-gray-600"
+                    : "text-blue-600"
+                }`}>
+                  {formattedPrice}
+                </div>
+                {attributes?.square > 0 && typeof price === 'number' && price > 0 && (
                   <div className="text-xs text-gray-500 mt-1">
-                    ₹{(attributes.price / attributes.square).toFixed(0)}/sqft
+                    ₹{(price / attributes.square).toFixed(0)}/sqft
                   </div>
                 )}
               </div>
@@ -275,9 +328,15 @@ export default function PropertyCard({ property, viewMode }) {
               Verified
             </div>
           )}
+          {isFeatured && (
+            <div className="flex items-center gap-1 bg-yellow-500 text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg">
+              ⭐ Featured
+            </div>
+          )}
         </div>
 
-        <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm text-gray-800 px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+        <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/95 backdrop-blur-sm text-gray-800 px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+          {getCategoryIcon ? getCategoryIcon(category) : categoryDetails.icon}
           {category}
         </div>
 
@@ -322,14 +381,12 @@ export default function PropertyCard({ property, viewMode }) {
           </div>
         )}
 
-        {/* View Count Badge */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm text-gray-700 px-2.5 py-1 rounded-full text-xs font-medium shadow-lg">
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-          </svg>
-          <span>124</span>
-        </div>
+        {/* Status Badge */}
+        {!forSale && (
+          <div className="absolute bottom-3 left-3 bg-orange-500 text-white px-2.5 py-1 rounded-full text-xs font-medium shadow-lg">
+            For Lease
+          </div>
+        )}
       </div>
 
       {/* Content Section */}
@@ -339,10 +396,7 @@ export default function PropertyCard({ property, viewMode }) {
         </h3>
         
         <div className="flex items-center gap-1.5 text-gray-600 mb-1">
-          <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
+          <MapPin className="w-4 h-4 text-blue-500 flex-shrink-0" />
           <span className="text-sm font-medium line-clamp-1">{city}</span>
         </div>
 
@@ -351,41 +405,35 @@ export default function PropertyCard({ property, viewMode }) {
         )}
 
         {/* Property Details */}
-        {(attributes?.bedrooms || attributes?.bathrooms || attributes?.square) && (
-          <div className="flex flex-wrap gap-3 mb-4 pb-4 border-b border-gray-100">
-            {attributes.bedrooms > 0 && (
-              <div className="flex items-center gap-1.5 text-gray-700">
-                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                <span className="text-sm font-semibold">{attributes.bedrooms}</span>
-              </div>
-            )}
-            {attributes.bathrooms > 0 && (
-              <div className="flex items-center gap-1.5 text-gray-700">
-                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span className="text-sm font-semibold">{attributes.bathrooms}</span>
-              </div>
-            )}
-            {attributes.square > 0 && (
-              <div className="flex items-center gap-1.5 text-gray-700">
-                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
-                </svg>
-                <span className="text-sm font-semibold">{attributes.square.toLocaleString()}</span>
-              </div>
-            )}
-          </div>
-        )}
+        <div className="flex flex-wrap gap-3 mb-4 pb-4 border-b border-gray-100">
+          {/* Square Footage */}
+          {attributes?.square > 0 && (
+            <div className="flex items-center gap-1.5 text-gray-700">
+              <Ruler className="w-4 h-4 text-blue-500" />
+              <span className="text-sm font-semibold">{attributes.square.toLocaleString()} sqft</span>
+            </div>
+          )}
+
+          {/* Category-specific details (first one only for grid view) */}
+          {categoryDetails.details[0] && (
+            <div className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
+              {categoryDetails.details[0]}
+            </div>
+          )}
+        </div>
 
         <div className="flex items-center justify-between mb-3">
           <div>
-            <div className="text-2xl font-bold text-blue-600">{price}</div>
-            {attributes?.price && attributes?.square && (
+            <div className={`text-2xl font-bold ${
+              formattedPrice === "Price on Request" || formattedPrice === "Contact for Price"
+                ? "text-gray-600"
+                : "text-blue-600"
+            }`}>
+              {formattedPrice}
+            </div>
+            {attributes?.square > 0 && typeof price === 'number' && price > 0 && (
               <div className="text-xs text-gray-500 mt-0.5">
-                ₹{(attributes.price / attributes.square).toFixed(0)}/sqft
+                ₹{(price / attributes.square).toFixed(0)}/sqft
               </div>
             )}
           </div>
@@ -406,9 +454,7 @@ export default function PropertyCard({ property, viewMode }) {
             className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-xs font-medium hover:underline w-full"
             onClick={(e) => e.stopPropagation()}
           >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
+            <ExternalLink className="w-3 h-3" />
             View on Map
           </a>
         )}
