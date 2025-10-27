@@ -224,7 +224,7 @@ export default function PropertyList() {
             ))}
             
             {/* Left Building */}
-            <rect x="100" y="180" width="120" height="220" fill="url(#buildingGradient2)" stroke="rgba(255,255,255,0.2)" strokeWidth="2"/>
+            <rect x="90" y="180" width="120" height="220" fill="url(#buildingGradient2)" stroke="rgba(255,255,255,0.2)" strokeWidth="2"/>
             {[...Array(6)].map((_, i) => (
               <g key={`left-${i}`}>
                 <rect x="115" y={200 + i * 35} width="20" height="20" fill="rgba(255,255,255,0.6)" className="animate-pulse" style={{ animationDelay: `${i * 0.3}s` }}/>
@@ -274,7 +274,7 @@ export default function PropertyList() {
                 </span>
               </h1>
               <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-300 font-serif font-light tracking-wider mb-6 sm:mb-8 px-4">
-                A Vision Realized
+                A Vision Realized,Clear titled PROPERTIES
               </p>
               <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-8 sm:mb-12 px-2">
                 <div className="px-4 sm:px-6 py-2 sm:py-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
@@ -317,7 +317,7 @@ export default function PropertyList() {
                   >
                     <Building className="w-4 h-4 sm:w-5 sm:h-5 inline mr-1 sm:mr-2" />
                     <span className="hidden sm:inline">Commercial</span>
-                    <span className="sm:hidden">Comm.</span>
+                    <span className="sm:hidden">Commercial.</span>
                   </button>
                   <button 
                     onClick={() => handleCategorySelect("Outright")}

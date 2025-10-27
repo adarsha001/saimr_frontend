@@ -11,7 +11,7 @@ export default function VerifiedProperties() {
       try {
         const res = await getProperties();
         // Filter only verified properties
-        const verified = res.data.filter((p) => p.isVerified);
+        const verified = res.data.properties.filter((p) => p.isVerified);
         setProperties(verified);
       } catch (err) {
         console.error("Error fetching properties:", err);

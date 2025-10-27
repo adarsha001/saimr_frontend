@@ -46,7 +46,7 @@ export default function PropertyDetail() {
 
   if (loading)
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br  from-gray-50 to-gray-100 flex items-center justify-center px-4">
         <div className="text-center">
           <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-gray-900 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600 text-base sm:text-lg font-light tracking-wide">Loading property details...</p>
@@ -190,9 +190,7 @@ export default function PropertyDetail() {
   const embedUrl = getGoogleMapsEmbedUrl();
   const viewUrl = getGoogleMapsViewUrl();
 
-  const displayPrice = price 
-    ? (typeof price === "number" ? `₹${(price / 100000).toFixed(2)}L` : price)
-    : "Price on Request";
+
 
   // Render category-specific attributes
   const renderCategoryAttributes = () => {
@@ -352,7 +350,7 @@ export default function PropertyDetail() {
 
             <div className="mt-4 sm:mt-0 lg:text-right">
               <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-1 sm:mb-2">
-                {displayPrice}
+                rs{price}
               </div>
               {attributes?.square && typeof price === "number" && (
                 <p className="text-xs sm:text-sm text-gray-600 font-light tracking-wide">
@@ -367,61 +365,63 @@ export default function PropertyDetail() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="max-w-7xl  mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6 sm:space-y-8">
             {/* Images Gallery */}
             {images?.length > 0 && (
-              <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl overflow-hidden border border-gray-200">
-                <div className="relative rounded-xl sm:rounded-2xl overflow-hidden" style={{ height: '300px', maxHeight: '500px' }}>
-                  <img
-                    src={images[selectedImage]?.url}
-                    alt={title}
-                    className="w-full h-full object-cover"
-                  />
-                  {images.length > 1 && (
-                    <>
-                      <button
-                        onClick={() => setSelectedImage((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
-                        className="absolute left-2 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all shadow-lg sm:shadow-2xl border border-gray-200"
-                      >
-                        <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-gray-700" />
-                      </button>
-                      <button
-                        onClick={() => setSelectedImage((prev) => (prev === images.length - 1 ? 0 : prev + 1))}
-                        className="absolute right-2 sm:right-4 md:right-6 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all shadow-lg sm:shadow-2xl border border-gray-200"
-                      >
-                        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-gray-700" />
-                      </button>
-                    </>
-                  )}
-                  <div className="absolute bottom-2 sm:bottom-4 md:bottom-6 right-2 sm:right-4 md:right-6 bg-black/70 backdrop-blur-sm text-white px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 rounded-full text-xs sm:text-sm font-serif font-medium tracking-wide">
-                    {selectedImage + 1} / {images.length}
-                  </div>
-                </div>
-                
-                {/* Thumbnail Grid */}
-                {images.length > 1 && (
-                  <div className="p-3 sm:p-4 md:p-6">
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
-                      {images.map((img, i) => (
-                        <button
-                          key={i}
-                          onClick={() => setSelectedImage(i)}
-                          className={`relative aspect-square rounded-lg sm:rounded-xl overflow-hidden transition-all border-2 ${
-                            selectedImage === i
-                              ? 'border-gray-900 scale-105 shadow-md sm:shadow-lg'
-                              : 'border-gray-200 hover:scale-105 opacity-70 hover:opacity-100'
-                          }`}
-                        >
-                          <img
-                            src={img.url}
-                            alt={`${title} ${i + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </button>
-                      ))}
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl overflow-hidden border border-gray-200">
+          {/* Main Image Container - Much Larger */}
+          <div className="relative rounded-xl sm:rounded-2xl overflow-hidden" style={{ height: '500px', maxHeight: '600px' }}>
+            <img
+              src={images[selectedImage]?.url}
+              alt={title}
+              className="w-full h-full object-cover"
+            />
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={() => setSelectedImage((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
+                  className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all shadow-xl border border-gray-200 hover:scale-110"
+                >
+                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
+                </button>
+                <button
+                  onClick={() => setSelectedImage((prev) => (prev === images.length - 1 ? 0 : prev + 1))}
+                  className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all shadow-xl border border-gray-200 hover:scale-110"
+                >
+                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
+                </button>
+              </>
+            )}
+            <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-6 bg-black/70 backdrop-blur-sm text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-sm font-serif font-medium tracking-wide">
+              {selectedImage + 1} / {images.length}
+            </div>
+          </div>
+          
+          {/* Thumbnail Grid */}
+          {images.length > 1 && (
+            <div className="p-4 sm:p-6">
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 sm:gap-4">
+                {images.map((img, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setSelectedImage(i)}
+                    className={`relative aspect-square rounded-lg sm:rounded-xl overflow-hidden transition-all border-2 ${
+                      selectedImage === i
+                        ? 'border-gray-900 scale-110 shadow-lg'
+                        : 'border-gray-200 hover:border-gray-400 hover:scale-105 opacity-80 hover:opacity-100'
+                    }`}
+                  >
+                    <img
+                      src={img.url}
+                      alt={`${title} ${i + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+          
                     </div>
                   </div>
                 )}
@@ -456,16 +456,16 @@ export default function PropertyDetail() {
             )}
 
             {/* Location & Map */}
+             {/* Location & Map */}
             {(mapUrl || coordinates || propertyLocation) && (
-              <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-6 md:p-8 border border-gray-200">
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-gray-900 mb-4 sm:mb-6 tracking-tight">Location</h2>
+              <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
+                <h2 className="text-3xl font-serif font-bold text-gray-900 mb-6 tracking-tight">Location</h2>
                 
                 {embedUrl ? (
-                  <div className="rounded-lg sm:rounded-xl overflow-hidden shadow-lg mb-4 sm:mb-6 border border-gray-200">
+                  <div className="rounded-xl overflow-hidden shadow-lg mb-6 border border-gray-200">
                     <iframe
                       width="100%"
-                      height="300"
-                      className="sm:h-400"
+                      height="400"
                       frameBorder="0"
                       style={{ border: 0 }}
                       src={embedUrl}
@@ -476,9 +476,9 @@ export default function PropertyDetail() {
                     ></iframe>
                   </div>
                 ) : (
-                  <div className="bg-gray-100 rounded-lg sm:rounded-xl p-6 sm:p-8 md:p-12 text-center mb-4 sm:mb-6 border border-gray-200">
-                    <MapPin className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 text-gray-400 mx-auto mb-3 sm:mb-4" />
-                    <p className="text-gray-600 font-serif font-medium tracking-wide text-sm sm:text-base">Location map not available</p>
+                  <div className="bg-gray-100 rounded-xl p-12 text-center mb-6 border border-gray-200">
+                    <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 font-serif font-medium tracking-wide">Location map not available</p>
                   </div>
                 )}
 
@@ -512,7 +512,7 @@ export default function PropertyDetail() {
           {/* Right Column - Contact & Info */}
           <div className="space-y-4 sm:space-y-6">
             {/* Contact Information */}
-            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-6 border border-gray-200 lg:sticky lg:top-6">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-6 border border-gray-200 lg:top-6">
               <h3 className="text-xl sm:text-2xl font-serif font-bold text-gray-900 mb-4 sm:mb-6 tracking-tight">Contact Information</h3>
               
               {/* Property Listing Date */}

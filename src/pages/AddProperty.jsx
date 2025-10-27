@@ -336,7 +336,7 @@ export default function AddProperty() {
               <div className="flex flex-col space-y-2">
                 <div className="flex items-center space-x-2">
                   <input 
-                    type="number" 
+                    type="text" 
                     name="price" 
                     placeholder="Enter price in ₹"
                     value={formData.priceOnRequest ? "" : formData.price}

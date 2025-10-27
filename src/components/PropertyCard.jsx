@@ -34,11 +34,14 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
   } = property;
 
   // Format price - handle both numbers and "Price on Request"
-  const formattedPrice = price === "Price on Request" 
-    ? "Price on Request"
-    : typeof price === 'number' 
+ const formattedPrice = price === "Price on Request"
+  ? "Price on Request"
+  : typeof price === "number"
+    ? price >= 100000
       ? `₹${(price / 100000).toFixed(2)}L`
-      : "Contact for Price";
+      : `₹${price.toLocaleString("en-IN")}`
+    : `Rs.${Number(price).toLocaleString("en-IN")}`;
+
 
   // Check if property is liked using global state
   const isLiked = isPropertyLiked(_id);
@@ -127,7 +130,7 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
     return (
       <div
         onClick={() => navigate(`/property/${_id}`)}
-        className="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-100 hover:border-blue-200"
+        className="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-200 hover:border-gray-400"
       >
         <div className="flex flex-col sm:flex-row">
           {/* Image Section */}
@@ -141,16 +144,16 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
               }`}
             />
             {!imageLoaded && (
-              <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
+              <div className="absolute inset-0 bg-gray-300 animate-pulse"></div>
             )}
             
-            {/* Overlay Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+            {/* Overlay Gradient - Black & White */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
 
             {/* Badges */}
             <div className="absolute top-4 left-4 flex flex-col gap-2">
               {isVerified && (
-                <div className="flex items-center gap-1 bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">
+                <div className="flex items-center gap-1 bg-black text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
@@ -158,11 +161,11 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
                 </div>
               )}
               {isFeatured && (
-                <div className="flex items-center gap-1 bg-yellow-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">
-                  ⭐ Featured
+                <div className="flex items-center gap-1 bg-gray-800 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">
+                  ★ Featured
                 </div>
               )}
-              <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm text-gray-800 px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">
+              <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm text-gray-900 px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg border border-gray-300">
                 {getCategoryIcon ? getCategoryIcon(category) : categoryDetails.icon}
                 {category}
               </div>
@@ -174,12 +177,12 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
               onMouseEnter={handleLikeHover}
               onMouseLeave={handleLikeLeave}
               disabled={likesLoading && user}
-              className={`absolute top-4 right-4 p-2.5 rounded-full transition-all duration-300 shadow-lg backdrop-blur-sm z-10 ${
+              className={`absolute top-4 right-4 p-2.5 rounded-full transition-all duration-300 shadow-lg backdrop-blur-sm z-10 border border-gray-300 ${
                 user 
                   ? (isLiked 
-                      ? "bg-red-500 text-white scale-110" 
-                      : "bg-white/90 text-gray-600 hover:bg-white hover:scale-110")
-                  : "bg-white/90 text-gray-400 hover:bg-white hover:scale-110"
+                      ? "bg-black text-white scale-110" 
+                      : "bg-white/90 text-gray-700 hover:bg-white hover:scale-110 hover:border-gray-400")
+                  : "bg-white/90 text-gray-500 hover:bg-white hover:scale-110 hover:border-gray-400"
               } ${(likesLoading && user) ? "opacity-50 cursor-not-allowed" : ""}`}
               title={user 
                 ? (isLiked ? "Remove from favorites" : "Add to favorites") 
@@ -213,15 +216,15 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
           {/* Content Section */}
           <div className="flex-1 p-6 flex flex-col justify-between">
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+              <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-gray-700 transition-colors line-clamp-2">
                 {title}
               </h3>
               
               <div className="flex items-center gap-2 text-gray-600 mb-1">
-                <MapPin className="w-4 h-4 text-blue-500" />
+                <MapPin className="w-4 h-4 text-gray-700" />
                 <span className="text-sm font-medium">{city}</span>
                 {!forSale && (
-                  <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                  <span className="bg-gray-200 text-gray-800 px-2 py-1 rounded-full text-xs font-medium">
                     For Lease
                   </span>
                 )}
@@ -232,11 +235,11 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
               )}
 
               {/* Property Details */}
-              <div className="flex flex-wrap gap-4 mb-4 pb-4 border-b border-gray-100">
+              <div className="flex flex-wrap gap-4 mb-4 pb-4 border-b border-gray-200">
                 {/* Square Footage */}
                 {attributes?.square > 0 && (
                   <div className="flex items-center gap-2 text-gray-700">
-                    <Ruler className="w-5 h-5 text-blue-500" />
+                    <Ruler className="w-5 h-5 text-gray-700" />
                     <span className="font-semibold">{attributes.square.toLocaleString()}</span>
                     <span className="text-sm text-gray-500">sqft</span>
                   </div>
@@ -245,7 +248,7 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
                 {/* Category-specific details */}
                 {categoryDetails.details.slice(0, 2).map((detail, index) => (
                   <div key={index} className="flex items-center gap-2 text-gray-700">
-                    <span className="text-sm font-medium bg-gray-100 px-3 py-1 rounded-full">
+                    <span className="text-sm font-medium bg-gray-100 px-3 py-1 rounded-full border border-gray-300">
                       {detail}
                     </span>
                   </div>
@@ -257,7 +260,7 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
                   href={mapUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-medium hover:underline mb-4"
+                  className="inline-flex items-center gap-1 text-gray-700 hover:text-black text-sm font-medium hover:underline mb-4"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <ExternalLink className="w-4 h-4" />
@@ -271,7 +274,7 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
                 <div className={`text-3xl font-bold ${
                   formattedPrice === "Price on Request" || formattedPrice === "Contact for Price"
                     ? "text-gray-600"
-                    : "text-blue-600"
+                    : "text-gray-900"
                 }`}>
                   {formattedPrice}
                 </div>
@@ -282,7 +285,7 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
                 )}
               </div>
               
-              <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-md hover:shadow-lg">
+              <button className="flex items-center gap-2 px-6 py-3 bg-black text-white rounded-xl hover:bg-gray-800 transition-all shadow-md hover:shadow-lg border border-gray-800">
                 <span className="font-medium">View Details</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -299,7 +302,7 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
   return (
     <div
       onClick={() => navigate(`/property/${_id}`)}
-      className="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-100 hover:border-blue-200 hover:-translate-y-2"
+      className="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-200 hover:border-gray-400 hover:-translate-y-2"
     >
       {/* Image Section */}
       <div className="relative h-56 overflow-hidden">
@@ -312,16 +315,16 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
           }`}
         />
         {!imageLoaded && (
-          <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
+          <div className="absolute inset-0 bg-gray-300 animate-pulse"></div>
         )}
         
-        {/* Overlay Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+        {/* Overlay Gradient - Black & White */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
           {isVerified && (
-            <div className="flex items-center gap-1 bg-green-500 text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg">
+            <div className="flex items-center gap-1 bg-black text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
@@ -329,13 +332,13 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
             </div>
           )}
           {isFeatured && (
-            <div className="flex items-center gap-1 bg-yellow-500 text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg">
-              ⭐ Featured
+            <div className="flex items-center gap-1 bg-gray-800 text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg">
+              ★ Featured
             </div>
           )}
         </div>
 
-        <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/95 backdrop-blur-sm text-gray-800 px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+        <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/95 backdrop-blur-sm text-gray-900 px-3 py-1 rounded-full text-xs font-semibold shadow-lg border border-gray-300">
           {getCategoryIcon ? getCategoryIcon(category) : categoryDetails.icon}
           {category}
         </div>
@@ -346,12 +349,12 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
           onMouseEnter={handleLikeHover}
           onMouseLeave={handleLikeLeave}
           disabled={likesLoading && user}
-          className={`absolute bottom-3 right-3 p-2 rounded-full transition-all duration-300 shadow-lg backdrop-blur-sm z-10 ${
+          className={`absolute bottom-3 right-3 p-2 rounded-full transition-all duration-300 shadow-lg backdrop-blur-sm z-10 border border-gray-300 ${
             user 
               ? (isLiked 
                   ? "bg-red-500 text-white scale-110" 
-                  : "bg-white/90 text-gray-600 hover:bg-white hover:scale-110")
-              : "bg-white/90 text-gray-400 hover:bg-white hover:scale-110"
+                  : "bg-white/90 text-gray-700 hover:bg-white hover:scale-110 hover:border-gray-400")
+              : "bg-white/90 text-gray-500 hover:bg-white hover:scale-110 hover:border-gray-400"
           } ${(likesLoading && user) ? "opacity-50 cursor-not-allowed" : ""}`}
           title={user 
             ? (isLiked ? "Remove from favorites" : "Add to favorites") 
@@ -383,7 +386,7 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
 
         {/* Status Badge */}
         {!forSale && (
-          <div className="absolute bottom-3 left-3 bg-orange-500 text-white px-2.5 py-1 rounded-full text-xs font-medium shadow-lg">
+          <div className="absolute bottom-3 left-3 bg-gray-700 text-white px-2.5 py-1 rounded-full text-xs font-medium shadow-lg">
             For Lease
           </div>
         )}
@@ -391,12 +394,12 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
 
       {/* Content Section */}
       <div className="p-5">
-        <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2 min-h-[3.5rem]">
+        <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-gray-700 transition-colors line-clamp-2 min-h-[3.5rem]">
           {title}
         </h3>
         
         <div className="flex items-center gap-1.5 text-gray-600 mb-1">
-          <MapPin className="w-4 h-4 text-blue-500 flex-shrink-0" />
+          <MapPin className="w-4 h-4 text-gray-700 flex-shrink-0" />
           <span className="text-sm font-medium line-clamp-1">{city}</span>
         </div>
 
@@ -405,18 +408,18 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
         )}
 
         {/* Property Details */}
-        <div className="flex flex-wrap gap-3 mb-4 pb-4 border-b border-gray-100">
+        <div className="flex flex-wrap gap-3 mb-4 pb-4 border-b border-gray-200">
           {/* Square Footage */}
           {attributes?.square > 0 && (
             <div className="flex items-center gap-1.5 text-gray-700">
-              <Ruler className="w-4 h-4 text-blue-500" />
+              <Ruler className="w-4 h-4 text-gray-700" />
               <span className="text-sm font-semibold">{attributes.square.toLocaleString()} sqft</span>
             </div>
           )}
 
           {/* Category-specific details (first one only for grid view) */}
           {categoryDetails.details[0] && (
-            <div className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
+            <div className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full border border-gray-300">
               {categoryDetails.details[0]}
             </div>
           )}
@@ -427,7 +430,7 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
             <div className={`text-2xl font-bold ${
               formattedPrice === "Price on Request" || formattedPrice === "Contact for Price"
                 ? "text-gray-600"
-                : "text-blue-600"
+                : "text-gray-900"
             }`}>
               {formattedPrice}
             </div>
@@ -438,7 +441,7 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
             )}
           </div>
           
-          <button className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg text-sm font-medium">
+          <button className="flex items-center gap-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all shadow-md hover:shadow-lg text-sm font-medium border border-gray-800">
             <span>View</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -451,7 +454,7 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
             href={mapUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-xs font-medium hover:underline w-full"
+            className="inline-flex items-center gap-1 text-gray-700 hover:text-black text-xs font-medium hover:underline w-full"
             onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="w-3 h-3" />
