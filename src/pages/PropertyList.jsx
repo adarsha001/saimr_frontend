@@ -36,19 +36,22 @@ export default function PropertyList() {
     fetchProperties();
   }, []);
 
-  // Smooth scroll to property list when search is performed
-  useEffect(() => {
-    if (search && propertyListRef.current) {
-      // Small delay to ensure the filtered results are rendered
-      setTimeout(() => {
-        propertyListRef.current?.scrollIntoView({ 
-          behavior: 'smooth',
-          block: 'start'
+useEffect(() => {
+  if (search && propertyListRef.current) {
+    setTimeout(() => {
+      const element = propertyListRef.current;
+      if (element) {
+        const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+        const offsetPosition = elementPosition - (window.innerHeight * 0.4); // 40% from top = 60% scroll
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
         });
-      }, 100);
-    }
-  }, [search]);
-
+      }
+    }, 100);
+  }
+}, [search]);
   // Smooth scroll when category filter is applied
   useEffect(() => {
     if (categoryFilter && propertyListRef.current) {
