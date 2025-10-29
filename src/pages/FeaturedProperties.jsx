@@ -41,7 +41,7 @@ export default function FeaturedProperties() {
   }
 
   return (
-    <div className="bg-white py-20">
+    <div className=" bg-gray-50 ">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header Section */}
         <div className="text-center mb-16">
@@ -89,14 +89,7 @@ export default function FeaturedProperties() {
 
         {/* Bottom CTA Section */}
         <div className="mt-20 text-center border-t-2 border-black pt-12">
-          <p className="text-gray-600 mb-6 text-sm tracking-wider uppercase font-semibold">
-            Ready to Find Your Dream Property?
-          </p>
-          <button className="inline-flex items-center gap-3 bg-black text-white px-10 py-4 text-sm font-semibold tracking-widest uppercase transition-all duration-300 hover:bg-gray-800 hover:gap-4">
-            <Home className="w-5 h-5" />
-            Explore All Listings
-            <ArrowRight className="w-5 h-5" />
-          </button>
+ 
         </div>
       </div>
     </div>

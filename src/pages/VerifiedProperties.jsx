@@ -40,7 +40,7 @@ export default function VerifiedProperties() {
   }
 
   return (
-    <div className="bg-gray-50 py-20">
+    <div className="bg-gray-50">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header Section */}
         <div className="text-center mb-16">
