@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Search, SlidersHorizontal, Grid3x3, List, MapPin, Home, DollarSign, Maximize, Building, Sprout, Handshake, LandPlot, ChevronDown, X } from "lucide-react";
 import { getProperties } from "../api/axios";
 import PropertyCard from "../components/PropertyCard";
+import { useViewMode } from '../context/ViewModeContext'
 
 export default function PropertyList() {
   const [properties, setProperties] = useState([]);

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getProperties } from "../api/axios"
 import PropertyCard from "../components/PropertyCard";
+import { ShieldCheck, Building2, Home, CheckCircle, Award, ArrowRight, FileCheck, Lock } from "lucide-react";
 
 export default function VerifiedProperties() {
   const [properties, setProperties] = useState([]);
@@ -10,7 +11,6 @@ export default function VerifiedProperties() {
     const fetchProperties = async () => {
       try {
         const res = await getProperties();
-        // Filter only verified properties
         const verified = res.data.properties.filter((p) => p.isVerified);
         setProperties(verified);
       } catch (err) {
@@ -24,129 +24,146 @@ export default function VerifiedProperties() {
 
   if (loading) {
     return (
-      <div className="text-center py-12 text-gray-600">
-        Loading verified properties...
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-gray-600 tracking-wide uppercase text-sm font-semibold">
+            Loading Verified Properties
+          </p>
+        </div>
       </div>
     );
   }
 
   if (properties.length === 0) {
-    return null; // Don't show section if no verified properties
+    return null;
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      {/* Entire Verified Section with Green Container */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 border-2 border-green-400 p-8 shadow-xl">
-        {/* Verified Section Header with Building Background */}
-        <div className="relative mb-10 overflow-hidden rounded-2xl bg-white/40 backdrop-blur-sm border border-green-200 p-6">
-          {/* Building SVG Background */}
-          <div className="absolute inset-0 opacity-5">
-            <svg
-              viewBox="0 0 800 200"
-              className="w-full h-full"
-              xmlns="http://www.w3.org/2000/svg"
-              preserveAspectRatio="xMidYMid slice"
-            >
-              {/* Building 1 */}
-              <rect x="50" y="60" width="100" height="140" fill="currentColor" className="text-green-900" />
-              <rect x="60" y="70" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="82" y="70" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="104" y="70" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="126" y="70" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="60" y="92" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="82" y="92" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="104" y="92" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="126" y="92" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="60" y="114" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="82" y="114" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="104" y="114" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="126" y="114" width="18" height="18" fill="white" opacity="0.3" />
-
-              {/* Building 2 - Taller */}
-              <rect x="180" y="40" width="120" height="160" fill="currentColor" className="text-green-900" />
-              <rect x="192" y="50" width="20" height="20" fill="white" opacity="0.3" />
-              <rect x="216" y="50" width="20" height="20" fill="white" opacity="0.3" />
-              <rect x="240" y="50" width="20" height="20" fill="white" opacity="0.3" />
-              <rect x="264" y="50" width="20" height="20" fill="white" opacity="0.3" />
-              <rect x="192" y="74" width="20" height="20" fill="white" opacity="0.3" />
-              <rect x="216" y="74" width="20" height="20" fill="white" opacity="0.3" />
-              <rect x="240" y="74" width="20" height="20" fill="white" opacity="0.3" />
-              <rect x="264" y="74" width="20" height="20" fill="white" opacity="0.3" />
-              <rect x="192" y="98" width="20" height="20" fill="white" opacity="0.3" />
-              <rect x="216" y="98" width="20" height="20" fill="white" opacity="0.3" />
-              <rect x="240" y="98" width="20" height="20" fill="white" opacity="0.3" />
-              <rect x="264" y="98" width="20" height="20" fill="white" opacity="0.3" />
-
-              {/* Building 3 */}
-              <rect x="330" y="80" width="90" height="120" fill="currentColor" className="text-green-900" />
-              <rect x="340" y="90" width="16" height="16" fill="white" opacity="0.3" />
-              <rect x="360" y="90" width="16" height="16" fill="white" opacity="0.3" />
-              <rect x="380" y="90" width="16" height="16" fill="white" opacity="0.3" />
-              <rect x="400" y="90" width="16" height="16" fill="white" opacity="0.3" />
-              <rect x="340" y="110" width="16" height="16" fill="white" opacity="0.3" />
-              <rect x="360" y="110" width="16" height="16" fill="white" opacity="0.3" />
-              <rect x="380" y="110" width="16" height="16" fill="white" opacity="0.3" />
-              <rect x="400" y="110" width="16" height="16" fill="white" opacity="0.3" />
-
-              {/* Building 4 - Medium */}
-              <rect x="450" y="70" width="100" height="130" fill="currentColor" className="text-green-900" />
-              <rect x="460" y="80" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="482" y="80" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="504" y="80" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="526" y="80" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="460" y="102" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="482" y="102" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="504" y="102" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="526" y="102" width="18" height="18" fill="white" opacity="0.3" />
-
-              {/* Building 5 */}
-              <rect x="580" y="90" width="80" height="110" fill="currentColor" className="text-green-900" />
-              <rect x="588" y="100" width="14" height="14" fill="white" opacity="0.3" />
-              <rect x="606" y="100" width="14" height="14" fill="white" opacity="0.3" />
-              <rect x="624" y="100" width="14" height="14" fill="white" opacity="0.3" />
-              <rect x="642" y="100" width="14" height="14" fill="white" opacity="0.3" />
-              <rect x="588" y="118" width="14" height="14" fill="white" opacity="0.3" />
-              <rect x="606" y="118" width="14" height="14" fill="white" opacity="0.3" />
-              <rect x="624" y="118" width="14" height="14" fill="white" opacity="0.3" />
-              <rect x="642" y="118" width="14" height="14" fill="white" opacity="0.3" />
-
-              {/* Building 6 - Tall */}
-              <rect x="690" y="50" width="110" height="150" fill="currentColor" className="text-green-900" />
-              <rect x="700" y="60" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="722" y="60" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="744" y="60" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="766" y="60" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="700" y="82" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="722" y="82" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="744" y="82" width="18" height="18" fill="white" opacity="0.3" />
-              <rect x="766" y="82" width="18" height="18" fill="white" opacity="0.3" />
-            </svg>
+    <div className="bg-gray-50 py-20">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Header Section */}
+        <div className="text-center mb-16">
+          {/* Verification Badge */}
+          <div className="inline-flex items-center gap-2 bg-black text-white px-6 py-2 mb-6">
+            <ShieldCheck className="w-4 h-4" />
+            <span className="text-xs font-semibold tracking-widest uppercase">
+              Authenticated Properties
+            </span>
           </div>
 
-          {/* Header Content */}
-          <div className="relative z-10 text-center">
-            <div className="flex items-center justify-center gap-4 mb-3">
-              <span className="text-5xl">✔️</span>
-              <h2 className="text-4xl font-bold text-green-900">Verified Properties</h2>
-              <span className="text-5xl">✔️</span>
+          {/* Main Title */}
+          <h1 className="text-5xl md:text-6xl font-bold text-black mb-4 tracking-tight">
+            Verified Properties
+          </h1>
+          
+          {/* Decorative Line with Shield */}
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="w-24 h-px bg-black" />
+            <ShieldCheck className="w-5 h-5 fill-black stroke-white" />
+            <div className="w-24 h-px bg-black" />
+          </div>
+
+          {/* Subtitle */}
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed mb-8">
+            Every property in our verified collection has been thoroughly authenticated with 
+            confirmed documentation, ownership verification, and detailed inspections.
+          </p>
+
+          {/* Trust Indicators */}
+          <div className="flex flex-wrap items-center justify-center gap-6 mb-8">
+            <div className="flex items-center gap-2 text-sm text-gray-700">
+              <FileCheck className="w-5 h-5" />
+              <span className="font-medium">Documentation Verified</span>
             </div>
-            <p className="text-green-800 text-lg">
-              Trusted listings with authenticated details and documentation
+            <div className="w-px h-6 bg-gray-300" />
+            <div className="flex items-center gap-2 text-sm text-gray-700">
+              <Lock className="w-5 h-5" />
+              <span className="font-medium">Ownership Confirmed</span>
+            </div>
+            <div className="w-px h-6 bg-gray-300" />
+            <div className="flex items-center gap-2 text-sm text-gray-700">
+              <CheckCircle className="w-5 h-5" />
+              <span className="font-medium">Inspection Complete</span>
+            </div>
+          </div>
+
+          {/* Property Count */}
+          <div className="inline-flex items-center gap-3 border-2 border-black px-8 py-3">
+            <Award className="w-5 h-5" />
+            <span className="text-sm font-semibold tracking-wider uppercase">
+              {properties.length} Verified {properties.length === 1 ? "Property" : "Properties"} Available
+            </span>
+          </div>
+        </div>
+
+        {/* Properties Grid */}
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {properties.map((property) => (
+            <PropertyCard key={property._id} property={property} />
+          ))}
+        </div>
+
+        {/* Verification Process Section */}
+        <div className="mt-20 bg-white border-2 border-black p-12">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-black mb-3 tracking-tight">
+              Our Verification Process
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Every property undergoes rigorous authentication to ensure complete transparency and trust
             </p>
-            <div className="mt-4 inline-block bg-white rounded-full px-5 py-2 shadow-md">
-              <span className="text-green-900 font-semibold">
-                {properties.length} Verified {properties.length === 1 ? "Property" : "Properties"} Available
-              </span>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-black text-white mb-4">
+                <FileCheck className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-semibold text-black mb-2 uppercase tracking-wider">
+                Step 1
+              </h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Complete documentation review and legal verification of ownership records
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-black text-white mb-4">
+                <Building2 className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-semibold text-black mb-2 uppercase tracking-wider">
+                Step 2
+              </h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Professional property inspection and condition assessment by certified experts
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-black text-white mb-4">
+                <ShieldCheck className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-semibold text-black mb-2 uppercase tracking-wider">
+                Step 3
+              </h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Final verification badge awarded after passing all authentication requirements
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Verified Properties Grid */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {properties.map((property) => (
-            <PropertyCard key={property._id} property={property} viewMode="grid" />
-          ))}
+        {/* Bottom CTA Section */}
+        <div className="mt-20 text-center border-t-2 border-black pt-12">
+          <p className="text-gray-600 mb-6 text-sm tracking-wider uppercase font-semibold">
+            Looking for Trusted Properties?
+          </p>
+          <button className="inline-flex items-center gap-3 bg-black text-white px-10 py-4 text-sm font-semibold tracking-widest uppercase transition-all duration-300 hover:bg-gray-800 hover:gap-4">
+            <Home className="w-5 h-5" />
+            Browse All Verified Listings
+            <ArrowRight className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>

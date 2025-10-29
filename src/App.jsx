@@ -12,11 +12,13 @@ import { AuthProvider } from "./context/AuthContext";
 import { LikesProvider } from "./context/LikesContext"; // Import LikesProvider
 import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./container/Home";
+import { ViewModeProvider } from "./context/ViewModeContext";
 
 export default function App() {
   return (
     <AuthProvider>
       <LikesProvider> {/* Wrap with LikesProvider */}
+<ViewModeProvider>
         <BrowserRouter>
           <Navbar />
           <Routes>
@@ -43,6 +45,7 @@ export default function App() {
             />
           </Routes>
         </BrowserRouter>
+         </ViewModeProvider>
       </LikesProvider>
     </AuthProvider>
   );

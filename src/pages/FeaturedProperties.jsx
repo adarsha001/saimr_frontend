@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { Building2, Home, Star, Award, CheckCircle2, ArrowRight } from "lucide-react";
 import { getProperties } from "../api/axios"
 import PropertyCard from "../components/PropertyCard";
 
+// Main Component
 export default function FeaturedProperties() {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,8 +12,6 @@ export default function FeaturedProperties() {
     const fetchProperties = async () => {
       try {
         const res = await getProperties();
-        // Filter only featured properties
-        console.log(res)
         const featured = res.data.properties.filter((p) => p.isFeatured);
         setProperties(featured);
       } catch (err) {
@@ -25,78 +25,81 @@ export default function FeaturedProperties() {
 
   if (loading) {
     return (
-      <div className="text-center py-12 text-gray-600">
-        Loading featured properties...
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-gray-600 tracking-wide uppercase text-sm font-semibold">
+            Loading Premium Properties
+          </p>
+        </div>
       </div>
     );
   }
 
   if (properties.length === 0) {
-    return null; // Don't show section if no featured properties
+    return null;
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      {/* Entire Featured Section with Unique Pattern Background */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 border-2 border-yellow-400 p-8 shadow-xl">
-        
-        {/* Unique Geometric Pattern Background */}
-        <div className="absolute inset-0 opacity-[0.03]">
-          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="geometric-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                <circle cx="50" cy="50" r="2" fill="currentColor" className="text-yellow-900"/>
-                <rect x="25" y="25" width="10" height="10" fill="currentColor" className="text-yellow-900" opacity="0.5"/>
-                <polygon points="50,10 60,30 40,30" fill="currentColor" className="text-yellow-900" opacity="0.3"/>
-                <circle cx="75" cy="25" r="4" fill="currentColor" className="text-yellow-900" opacity="0.7"/>
-                <rect x="65" y="65" width="8" height="8" fill="currentColor" className="text-yellow-900" opacity="0.6"/>
-                <polygon points="25,75 35,85 15,85" fill="currentColor" className="text-yellow-900" opacity="0.4"/>
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#geometric-pattern)" />
-          </svg>
-        </div>
+    <div className="bg-white py-20">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Header Section */}
+        <div className="text-center mb-16">
+          {/* Premium Badge */}
+          <div className="inline-flex items-center gap-2 bg-black text-white px-6 py-2 mb-6">
+            <Award className="w-4 h-4" />
+            <span className="text-xs font-semibold tracking-widest uppercase">
+              Exclusive Collection
+            </span>
+          </div>
 
-        {/* Featured Section Header */}
-        <div className="relative mb-10 overflow-hidden rounded-2xl bg-white/40 backdrop-blur-sm border border-yellow-200 p-6">
+          {/* Main Title */}
+          <h1 className="text-5xl md:text-6xl font-bold text-black mb-4 tracking-tight">
+            Featured Properties
+          </h1>
           
-          {/* Subtle Building Pattern for Header Only */}
-          <div className="absolute inset-0 opacity-5">
-            <svg viewBox="0 0 800 200" className="w-full h-full" preserveAspectRatio="xMidYMid slice">
-              {/* Simplified building shapes */}
-              <rect x="50" y="80" width="80" height="120" fill="currentColor" className="text-yellow-900"/>
-              <rect x="180" y="60" width="100" height="140" fill="currentColor" className="text-yellow-900"/>
-              <rect x="330" y="70" width="70" height="130" fill="currentColor" className="text-yellow-900"/>
-              <rect x="450" y="90" width="90" height="110" fill="currentColor" className="text-yellow-900"/>
-              <rect x="580" y="50" width="120" height="150" fill="currentColor" className="text-yellow-900"/>
-            </svg>
+          {/* Decorative Line */}
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="w-24 h-px bg-black" />
+            <Star className="w-5 h-5 fill-black" />
+            <div className="w-24 h-px bg-black" />
           </div>
 
-          {/* Header Content */}
-          <div className="relative z-10 text-center">
-            <div className="flex items-center justify-center gap-4 mb-3">
-              <span className="text-5xl">⭐</span>
-              <h2 className="text-4xl font-bold text-yellow-900">Featured Properties</h2>
-              <span className="text-5xl">⭐</span>
-            </div>
-            <p className="text-yellow-800 text-lg">
-              Discover our handpicked premium listings with verified details
-            </p>
-            <div className="mt-4 inline-block bg-white rounded-full px-5 py-2 shadow-md">
-              <span className="text-yellow-900 font-semibold">
-                {properties.length} Premium {properties.length === 1 ? "Property" : "Properties"} Available
-              </span>
-            </div>
+          {/* Subtitle */}
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
+            Discover our handpicked selection of premium properties, each offering 
+            unparalleled luxury and sophistication in the world's most desirable locations.
+          </p>
+
+          {/* Property Count */}
+          <div className="mt-8 inline-flex items-center gap-3 border-2 border-black px-8 py-3">
+            <CheckCircle2 className="w-5 h-5" />
+            <span className="text-sm font-semibold tracking-wider uppercase">
+              {properties.length} Premium {properties.length === 1 ? "Property" : "Properties"} Available
+            </span>
           </div>
         </div>
 
-        {/* Featured Properties Grid */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 relative z-10">
+        {/* Properties Grid */}
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {properties.map((property) => (
-            <PropertyCard key={property._id} property={property} viewMode="grid" />
+            <PropertyCard key={property._id} property={property} />
           ))}
+        </div>
+
+        {/* Bottom CTA Section */}
+        <div className="mt-20 text-center border-t-2 border-black pt-12">
+          <p className="text-gray-600 mb-6 text-sm tracking-wider uppercase font-semibold">
+            Ready to Find Your Dream Property?
+          </p>
+          <button className="inline-flex items-center gap-3 bg-black text-white px-10 py-4 text-sm font-semibold tracking-widest uppercase transition-all duration-300 hover:bg-gray-800 hover:gap-4">
+            <Home className="w-5 h-5" />
+            Explore All Listings
+            <ArrowRight className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>
   );
 }
+
