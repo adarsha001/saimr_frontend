@@ -36,7 +36,7 @@ const likesReducer = (state, action) => {
       return {
         ...state,
         likedProperties: state.likedProperties.filter(
-          property => property.property._id !== action.payload
+          item => item?.property?._id !== action.payload
         ),
         loading: false
       };
@@ -85,9 +85,22 @@ export const LikesProvider = ({ children }) => {
     try {
       dispatch({ type: LIKES_ACTIONS.SET_LOADING, payload: true });
       const response = await API.get('/users/profile');
-      const likedProperties = response.data.user.likedProperties || [];
-      dispatch({ type: LIKES_ACTIONS.SET_LIKES, payload: likedProperties });
+      
+      // Add comprehensive null checks for the API response
+      const likedProperties = response.data?.user?.likedProperties || [];
+      
+      console.log('Raw liked properties from API:', likedProperties);
+      
+      // Filter out any invalid items that might have null properties
+      const validLikedProperties = likedProperties.filter(
+        item => item && item.property && item.property._id
+      );
+      
+      console.log('Valid liked properties after filtering:', validLikedProperties);
+      
+      dispatch({ type: LIKES_ACTIONS.SET_LIKES, payload: validLikedProperties });
     } catch (error) {
+      console.error('Error fetching liked properties:', error);
       dispatch({ 
         type: LIKES_ACTIONS.SET_ERROR, 
         payload: 'Failed to fetch liked properties' 
@@ -116,6 +129,7 @@ export const LikesProvider = ({ children }) => {
       dispatch({ type: LIKES_ACTIONS.ADD_LIKE, payload: newLike });
       return true;
     } catch (error) {
+      console.error('Error liking property:', error);
       dispatch({ 
         type: LIKES_ACTIONS.SET_ERROR, 
         payload: 'Failed to like property' 
@@ -135,6 +149,7 @@ export const LikesProvider = ({ children }) => {
       dispatch({ type: LIKES_ACTIONS.REMOVE_LIKE, payload: propertyId });
       return true;
     } catch (error) {
+      console.error('Error unliking property:', error);
       dispatch({ 
         type: LIKES_ACTIONS.SET_ERROR, 
         payload: 'Failed to unlike property' 
@@ -152,9 +167,7 @@ export const LikesProvider = ({ children }) => {
       return false;
     }
 
-    const isCurrentlyLiked = state.likedProperties.some(
-      item => item.property._id === propertyId
-    );
+    const isCurrentlyLiked = isPropertyLiked(propertyId);
 
     if (isCurrentlyLiked) {
       return await unlikeProperty(propertyId);
@@ -163,10 +176,29 @@ export const LikesProvider = ({ children }) => {
     }
   };
 
+  // Fixed isPropertyLiked function with comprehensive null checks
   const isPropertyLiked = (propertyId) => {
-    return state.likedProperties.some(
-      item => item.property._id === propertyId
-    );
+    // Check if propertyId is valid
+    if (!propertyId) {
+      console.warn('isPropertyLiked called with invalid propertyId:', propertyId);
+      return false;
+    }
+
+    // Check if likedProperties array exists and has items
+    if (!state.likedProperties || !Array.isArray(state.likedProperties)) {
+      return false;
+    }
+
+    // Use safe array iteration with null checks
+    return state.likedProperties.some(item => {
+      // Check if item exists and has the expected structure
+      if (!item || !item.property) {
+        return false;
+      }
+      
+      // Check if property has _id and compare
+      return item.property._id === propertyId;
+    });
   };
 
   const value = {

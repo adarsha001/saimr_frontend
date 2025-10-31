@@ -5,7 +5,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || null);
-
+console.log(user)
   const login = async (emailOrUsername, password) => {
     const { data } = await API.post('/auth/login', { emailOrUsername, password });
     localStorage.setItem('token', data.token);

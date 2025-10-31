@@ -18,6 +18,12 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
   const [showLoginTooltip, setShowLoginTooltip] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
+  // Add comprehensive null checks for the property object
+  if (!property || !property._id) {
+    console.warn("PropertyCard: Invalid property data", property);
+    return null; // Don't render if property is invalid
+  }
+
   const {
     _id,
     title,
@@ -33,18 +39,21 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
     isFeatured
   } = property;
 
+  // Add null checks for nested properties
+  const safeAttributes = attributes || {};
+  const safeImages = images || [];
+
   // Format price - handle both numbers and "Price on Request"
- const formattedPrice = price === "Price on Request"
-  ? "Price on Request"
-  : typeof price === "number"
-    ? price >= 100000
-      ? `₹${(price / 100000).toFixed(2)}L`
-      : `₹${price.toLocaleString("en-IN")}`
-    : `Rs.${Number(price).toLocaleString("en-IN")}`;
+  const formattedPrice = price === "Price on Request"
+    ? "Price on Request"
+    : typeof price === "number"
+      ? price >= 100000
+        ? `₹${(price / 100000).toFixed(2)}L`
+        : `₹${price.toLocaleString("en-IN")}`
+      : `Rs.${Number(price || 0).toLocaleString("en-IN")}`;
 
-
-  // Check if property is liked using global state
-  const isLiked = isPropertyLiked(_id);
+  // Check if property is liked using global state - with null check
+  const isLiked = _id ? isPropertyLiked(_id) : false;
 
   const handleLikeToggle = async (e) => {
     e.stopPropagation();
@@ -53,6 +62,12 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
       setShowLoginTooltip(true);
       setTimeout(() => setShowLoginTooltip(false), 3000);
       toast.error("Please login to save properties to your favorites");
+      return;
+    }
+
+    // Ensure we have a valid ID before proceeding
+    if (!_id) {
+      toast.error("Invalid property data");
       return;
     }
 
@@ -79,65 +94,78 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
     setShowLoginTooltip(false);
   };
 
-  // Get category-specific details
+  // Get category-specific details with null checks
   const getCategoryDetails = () => {
+    const defaultDetails = { icon: <LandPlot className="w-4 h-4" />, details: [] };
+    
+    if (!category) return defaultDetails;
+
     switch (category) {
       case "Commercial":
         return {
           icon: <Building className="w-4 h-4" />,
           details: [
-            attributes?.expectedROI && `ROI: ${attributes.expectedROI}%`,
-            attributes?.floors && `${attributes.floors} floors`,
-            attributes?.propertyLabel
+            safeAttributes?.expectedROI && `ROI: ${safeAttributes.expectedROI}%`,
+            safeAttributes?.floors && `${safeAttributes.floors} floors`,
+            safeAttributes?.propertyLabel
           ].filter(Boolean)
         };
       case "Farmland":
         return {
           icon: <Sprout className="w-4 h-4" />,
           details: [
-            attributes?.irrigationAvailable && "Irrigation Available",
-            attributes?.waterSource,
-            attributes?.soilType
+            safeAttributes?.irrigationAvailable && "Irrigation Available",
+            safeAttributes?.waterSource,
+            safeAttributes?.soilType
           ].filter(Boolean)
         };
       case "JD/JV":
         return {
           icon: <Handshake className="w-4 h-4" />,
           details: [
-            attributes?.typeOfJV,
-            attributes?.expectedROI && `Expected ROI: ${attributes.expectedROI}%`,
-            attributes?.legalClearance && "Legal Clearance"
+            safeAttributes?.typeOfJV,
+            safeAttributes?.expectedROI && `Expected ROI: ${safeAttributes.expectedROI}%`,
+            safeAttributes?.legalClearance && "Legal Clearance"
           ].filter(Boolean)
         };
       case "Outright":
         return {
           icon: <LandPlot className="w-4 h-4" />,
           details: [
-            attributes?.facing && `Facing: ${attributes.facing}`,
-            attributes?.roadWidth && `Road: ${attributes.roadWidth}ft`,
-            attributes?.legalClearance && "Legal Clearance"
+            safeAttributes?.facing && `Facing: ${safeAttributes.facing}`,
+            safeAttributes?.roadWidth && `Road: ${safeAttributes.roadWidth}ft`,
+            safeAttributes?.legalClearance && "Legal Clearance"
           ].filter(Boolean)
         };
       default:
-        return { icon: <LandPlot className="w-4 h-4" />, details: [] };
+        return defaultDetails;
     }
   };
 
   const categoryDetails = getCategoryDetails();
 
+  // Handle card click with null check
+  const handleCardClick = () => {
+    if (_id) {
+      navigate(`/property/${_id}`);
+    } else {
+      toast.error("Invalid property data");
+    }
+  };
+
   // List View Layout
   if (viewMode === "list") {
     return (
       <div
-        onClick={() => navigate(`/property/${_id}`)}
+        onClick={handleCardClick}
         className="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-200 hover:border-gray-400"
       >
         <div className="flex flex-col sm:flex-row">
           {/* Image Section */}
           <div className="relative w-full sm:w-80 h-64 sm:h-auto overflow-hidden">
             <img
-              src={images?.[0]?.url || "https://via.placeholder.com/600x400"}
-              alt={title}
+              src={safeImages[0]?.url || "https://via.placeholder.com/600x400"}
+              alt={title || "Property image"}
               onLoad={() => setImageLoaded(true)}
               className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${
                 imageLoaded ? "opacity-100" : "opacity-0"
@@ -167,7 +195,7 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
               )}
               <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm text-gray-900 px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg border border-gray-300">
                 {getCategoryIcon ? getCategoryIcon(category) : categoryDetails.icon}
-                {category}
+                {category || "Property"}
               </div>
             </div>
 
@@ -217,12 +245,12 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
           <div className="flex-1 p-6 flex flex-col justify-between">
             <div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-gray-700 transition-colors line-clamp-2">
-                {title}
+                {title || "Untitled Property"}
               </h3>
               
               <div className="flex items-center gap-2 text-gray-600 mb-1">
                 <MapPin className="w-4 h-4 text-gray-700" />
-                <span className="text-sm font-medium">{city}</span>
+                <span className="text-sm font-medium">{city || "Location not specified"}</span>
                 {!forSale && (
                   <span className="bg-gray-200 text-gray-800 px-2 py-1 rounded-full text-xs font-medium">
                     For Lease
@@ -237,10 +265,10 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
               {/* Property Details */}
               <div className="flex flex-wrap gap-4 mb-4 pb-4 border-b border-gray-200">
                 {/* Square Footage */}
-                {attributes?.square > 0 && (
+                {safeAttributes?.square > 0 && (
                   <div className="flex items-center gap-2 text-gray-700">
                     <Ruler className="w-5 h-5 text-gray-700" />
-                    <span className="font-semibold">{attributes.square.toLocaleString()}</span>
+                    <span className="font-semibold">{safeAttributes.square.toLocaleString()}</span>
                     <span className="text-sm text-gray-500">sqft</span>
                   </div>
                 )}
@@ -278,9 +306,9 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
                 }`}>
                   {formattedPrice}
                 </div>
-                {attributes?.square > 0 && typeof price === 'number' && price > 0 && (
+                {safeAttributes?.square > 0 && typeof price === 'number' && price > 0 && (
                   <div className="text-xs text-gray-500 mt-1">
-                    ₹{(price / attributes.square).toFixed(0)}/sqft
+                    ₹{(price / safeAttributes.square).toFixed(0)}/sqft
                   </div>
                 )}
               </div>
@@ -301,14 +329,14 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
   // Grid View Layout
   return (
     <div
-      onClick={() => navigate(`/property/${_id}`)}
+      onClick={handleCardClick}
       className="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-200 hover:border-gray-400 hover:-translate-y-2"
     >
       {/* Image Section */}
       <div className="relative h-56 overflow-hidden">
         <img
-          src={images?.[0]?.url || "https://via.placeholder.com/600x400"}
-          alt={title}
+          src={safeImages[0]?.url || "https://via.placeholder.com/600x400"}
+          alt={title || "Property image"}
           onLoad={() => setImageLoaded(true)}
           className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${
             imageLoaded ? "opacity-100" : "opacity-0"
@@ -340,7 +368,7 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
 
         <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/95 backdrop-blur-sm text-gray-900 px-3 py-1 rounded-full text-xs font-semibold shadow-lg border border-gray-300">
           {getCategoryIcon ? getCategoryIcon(category) : categoryDetails.icon}
-          {category}
+          {category || "Property"}
         </div>
 
         {/* Like Button */}
@@ -395,12 +423,12 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
       {/* Content Section */}
       <div className="p-5">
         <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-gray-700 transition-colors line-clamp-2 min-h-[3.5rem]">
-          {title}
+          {title || "Untitled Property"}
         </h3>
         
         <div className="flex items-center gap-1.5 text-gray-600 mb-1">
           <MapPin className="w-4 h-4 text-gray-700 flex-shrink-0" />
-          <span className="text-sm font-medium line-clamp-1">{city}</span>
+          <span className="text-sm font-medium line-clamp-1">{city || "Location not specified"}</span>
         </div>
 
         {propertyLocation && (
@@ -410,10 +438,10 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
         {/* Property Details */}
         <div className="flex flex-wrap gap-3 mb-4 pb-4 border-b border-gray-200">
           {/* Square Footage */}
-          {attributes?.square > 0 && (
+          {safeAttributes?.square > 0 && (
             <div className="flex items-center gap-1.5 text-gray-700">
               <Ruler className="w-4 h-4 text-gray-700" />
-              <span className="text-sm font-semibold">{attributes.square.toLocaleString()} sqft</span>
+              <span className="text-sm font-semibold">{safeAttributes.square.toLocaleString()} sqft</span>
             </div>
           )}
 
@@ -434,9 +462,9 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
             }`}>
               {formattedPrice}
             </div>
-            {attributes?.square > 0 && typeof price === 'number' && price > 0 && (
+            {safeAttributes?.square > 0 && typeof price === 'number' && price > 0 && (
               <div className="text-xs text-gray-500 mt-0.5">
-                ₹{(price / attributes.square).toFixed(0)}/sqft
+                ₹{(price / safeAttributes.square).toFixed(0)}/sqft
               </div>
             )}
           </div>

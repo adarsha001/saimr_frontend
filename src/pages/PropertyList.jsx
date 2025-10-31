@@ -554,7 +554,7 @@ useEffect(() => {
             viewMode === "grid" ? "sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
           }`}
         >
-          {filtered.map((property) => (
+          {filtered.filter(property => property && property._id).map((property) => (
             <PropertyCard 
               key={property._id || property.id} 
               property={property} 

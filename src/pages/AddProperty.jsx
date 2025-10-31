@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { createProperty } from "../api/axios"; 
+import { useState, useEffect } from "react";
+import { createProperty } from "../api/axios";
+import { useAuth } from "../context/AuthContext"; // Assuming you have AuthContext
 
 // Updated category fields for non-residential properties
 const categoryFields = {
@@ -28,6 +29,7 @@ const allFeatures = [
 const allNearby = ["Highway", "Airport", "BusStop", "Metro", "CityCenter", "IndustrialArea"];
 
 export default function AddProperty() {
+  const { user } = useAuth(); // Get current user from auth context
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -42,9 +44,7 @@ export default function AddProperty() {
     category: "Outright",
     price: "",
     priceOnRequest: false,
-    isFeatured: false,
     forSale: true,
-    isVerified: false,
     attributes: {
       square: "",
       propertyLabel: "",
@@ -61,6 +61,7 @@ export default function AddProperty() {
     distanceKey: [],
     features: [],
     nearby: allNearby.reduce((acc, key) => ({ ...acc, [key]: "" }), {}),
+    // Remove approvalStatus from formData as we'll handle it dynamically
   });
 
   const [distanceInput, setDistanceInput] = useState("");
@@ -68,6 +69,9 @@ export default function AddProperty() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+
+  // Check if user is admin
+  const isAdmin = user?.role === "admin";
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -173,34 +177,60 @@ export default function AddProperty() {
       const data = new FormData();
       
       console.log('Starting property submission...');
+      console.log('User role:', user?.role);
+      console.log('Is admin:', isAdmin);
       
       // Filter out empty nearby values
       const filteredNearby = Object.fromEntries(
         Object.entries(formData.nearby).filter(([_, value]) => value !== "")
       );
 
+      // Determine approval status based on user role
+      const approvalStatus = isAdmin ? "approved" : "pending";
+      
+      console.log('Setting approval status to:', approvalStatus);
+
       // Prepare data for submission
       const submitData = {
-        ...formData,
+        // Basic fields
+        title: formData.title,
+        description: formData.description,
+        content: formData.content,
+        city: formData.city,
+        propertyLocation: formData.propertyLocation,
+        coordinates: formData.coordinates,
+        mapUrl: formData.mapUrl,
+        category: formData.category,
         price: formData.priceOnRequest ? "Price on Request" : (formData.price ? parseFloat(formData.price) : ""),
+        forSale: formData.forSale,
+        
+        // Set approval status based on user role
+        approvalStatus: approvalStatus,
+        
+        // If user is admin, they can set featured and verified status directly
+        ...(isAdmin && {
+          isFeatured: false, // You can add form controls for these if needed
+          isVerified: false, // You can add form controls for these if needed
+        }),
+        
+        // Complex fields that need processing
         nearby: filteredNearby,
-        // Convert string numbers to actual numbers for attributes
         attributes: {
           ...formData.attributes,
           square: formData.attributes.square ? parseInt(formData.attributes.square) : "",
           expectedROI: formData.attributes.expectedROI ? parseFloat(formData.attributes.expectedROI) : "",
           roadWidth: formData.attributes.roadWidth ? parseFloat(formData.attributes.roadWidth) : "",
         },
-        // Filter features to only include valid ones for the category
         features: formData.features.filter(feature => 
           getFilteredFeatures().includes(feature)
-        )
+        ),
+        distanceKey: formData.distanceKey
       };
 
-      // Remove priceOnRequest from final data as it's only for UI
+      // Remove priceOnRequest as it's only for UI
       delete submitData.priceOnRequest;
 
-      console.log('Prepared data:', submitData);
+      console.log('Prepared data for backend:', JSON.stringify(submitData, null, 2));
 
       // Append all data to FormData
       for (let key in submitData) {
@@ -223,7 +253,13 @@ export default function AddProperty() {
       const res = await createProperty(data);
       
       console.log('Property created successfully:', res.data);
-      setSuccess("Property added successfully!");
+      
+      // Show appropriate success message based on user role
+      if (isAdmin) {
+        setSuccess("Property added successfully and approved! It is now live on the platform.");
+      } else {
+        setSuccess("Property added successfully! It will be visible after admin approval.");
+      }
       
       // Reset form
       setFormData({
@@ -237,9 +273,7 @@ export default function AddProperty() {
         category: "Outright",
         price: "",
         priceOnRequest: false,
-        isFeatured: false,
         forSale: true,
-        isVerified: false,
         attributes: {
           square: "",
           propertyLabel: "",
@@ -283,6 +317,33 @@ export default function AddProperty() {
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-xl">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Add New Property</h1>
       
+      {/* User Role Notification */}
+      {isAdmin && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+            <span className="text-green-800 font-medium">
+              Admin Mode: Properties will be automatically approved and published immediately.
+            </span>
+          </div>
+        </div>
+      )}
+      
+      {!isAdmin && (
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            <span className="text-blue-800 font-medium">
+              Standard User: Properties will be submitted for admin approval before being published.
+            </span>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Basic Information Section */}
         <div className="bg-gray-50 p-6 rounded-lg">
@@ -695,27 +756,40 @@ export default function AddProperty() {
               <span className="text-gray-700">For Sale</span>
             </label>
             
-            <label className="flex items-center space-x-2">
-              <input 
-                type="checkbox" 
-                name="isFeatured" 
-                checked={formData.isFeatured} 
-                onChange={handleChange}
-                className="rounded border-gray-300"
-              />
-              <span className="text-gray-700">Featured Property</span>
-            </label>
+            {/* Admin-only status controls */}
+            {isAdmin && (
+              <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-6">
+                <label className="flex items-center space-x-2">
+                  <input 
+                    type="checkbox" 
+                    name="isFeatured" 
+                    checked={formData.isFeatured} 
+                    onChange={handleChange}
+                    className="rounded border-gray-300"
+                  />
+                  <span className="text-gray-700">Featured Property</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input 
+                    type="checkbox" 
+                    name="isVerified" 
+                    checked={formData.isVerified} 
+                    onChange={handleChange}
+                    className="rounded border-gray-300"
+                  />
+                  <span className="text-gray-700">Verified Property</span>
+                </label>
+              </div>
+            )}
             
-            <label className="flex items-center space-x-2">
-              <input 
-                type="checkbox" 
-                name="isVerified" 
-                checked={formData.isVerified} 
-                onChange={handleChange}
-                className="rounded border-gray-300"
-              />
-              <span className="text-gray-700">Verified Property</span>
-            </label>
+            <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded-lg">
+              <p className="font-medium">Note:</p>
+              {isAdmin ? (
+                <p>As an admin, properties will be automatically approved and published immediately.</p>
+              ) : (
+                <p>Properties will be reviewed by admin before being published.</p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -724,16 +798,34 @@ export default function AddProperty() {
           <button 
             type="submit" 
             disabled={loading}
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition duration-200 font-semibold text-lg"
+            className={`px-8 py-3 rounded-lg font-semibold text-lg transition duration-200 ${
+              isAdmin 
+                ? "bg-green-600 text-white hover:bg-green-700 disabled:bg-green-400" 
+                : "bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400"
+            }`}
           >
-            {loading ? "Adding Property..." : "Add Property"}
+            {loading 
+              ? "Adding Property..." 
+              : isAdmin 
+                ? "Add & Approve Property" 
+                : "Submit Property for Approval"
+            }
           </button>
         </div>
 
         {/* Messages */}
         {success && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-            {success}
+          <div className={`p-4 rounded-lg ${
+            isAdmin 
+              ? "bg-green-100 border border-green-400 text-green-700" 
+              : "bg-blue-100 border border-blue-400 text-blue-700"
+          }`}>
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              {success}
+            </div>
           </div>
         )}
         {error && (

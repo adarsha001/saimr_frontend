@@ -35,7 +35,7 @@ export default function Profile() {
       // Update local state to remove the property
       setUserData(prev => ({
         ...prev,
-        likedProperties: prev.likedProperties.filter(p => p.property._id !== propertyId)
+        likedProperties: prev.likedProperties.filter(p => p.property?._id !== propertyId)
       }));
     } catch (error) {
       console.error('Error unliking property:', error);
@@ -57,6 +57,11 @@ export default function Profile() {
       </div>
     </div>
   );
+
+  // Filter out any null or invalid properties
+  const validLikedProperties = userData.likedProperties?.filter(
+    item => item?.property && item.property._id
+  ) || [];
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -111,7 +116,7 @@ export default function Profile() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-blue-50 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    {userData.likedProperties?.length || 0}
+                    {validLikedProperties.length}
                   </div>
                   <div className="text-sm text-blue-800">Favorites</div>
                 </div>
@@ -131,11 +136,11 @@ export default function Profile() {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Favorite Properties</h2>
             <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-              {userData.likedProperties?.length || 0} properties
+              {validLikedProperties.length} properties
             </span>
           </div>
 
-          {userData.likedProperties?.length === 0 ? (
+          {validLikedProperties.length === 0 ? (
             <div className="text-center py-12">
               <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -151,7 +156,7 @@ export default function Profile() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {userData.likedProperties?.map(({ property, likedAt }) => (
+              {validLikedProperties.map(({ property, likedAt }) => (
                 <div
                   key={property._id}
                   onClick={() => handlePropertyClick(property._id)}
@@ -171,9 +176,12 @@ export default function Profile() {
                   {/* Property Image */}
                   <div className="relative">
                     <img
-                      src={property.images?.[0]?.url || "https://via.placeholder.com/400x300"}
-                      alt={property.title}
+                      src={property.images?.[0]?.url || "https://via.placeholder.com/400x300?text=No+Image"}
+                      alt={property.title || "Property"}
                       className="w-full h-48 object-cover rounded-t-xl"
+                      onError={(e) => {
+                        e.target.src = "https://via.placeholder.com/400x300?text=No+Image";
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-t-xl"></div>
                     
@@ -187,7 +195,7 @@ export default function Profile() {
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-lg font-semibold text-gray-900 line-clamp-1 flex-1">
-                        {property.title}
+                        {property.title || "Untitled Property"}
                       </h3>
                       {property.isVerified && (
                         <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full ml-2">
@@ -197,11 +205,14 @@ export default function Profile() {
                     </div>
 
                     <p className="text-gray-600 text-sm mb-2">
-                      {property.city} • {property.category}
+                      {property.city || "Unknown City"} • {property.category || "Unknown Category"}
                     </p>
 
                     <p className="text-blue-700 font-bold text-lg mb-3">
-                      {property.attributes?.price ? `₹${property.attributes.price.toLocaleString()}` : 'Price on Request'}
+                      {property.price && property.price !== "Price on Request" 
+                        ? `₹${typeof property.price === 'number' ? property.price.toLocaleString() : property.price}`
+                        : 'Price on Request'
+                      }
                     </p>
 
                     {property.attributes && (
@@ -234,7 +245,7 @@ export default function Profile() {
                     )}
 
                     <p className="text-gray-500 text-sm line-clamp-2">
-                      {property.propertyLocation}
+                      {property.propertyLocation || "Location not specified"}
                     </p>
                   </div>
                 </div>
