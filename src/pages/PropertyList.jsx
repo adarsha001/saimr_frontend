@@ -10,13 +10,13 @@ export default function PropertyList() {
   const [error, setError] = useState("");
   const [viewMode, setViewMode] = useState("grid");
   const [search, setSearch] = useState("");
-  const [sort, setSort] = useState("");
+
   const [categoryFilter, setCategoryFilter] = useState("");
   const [cityFilter, setCityFilter] = useState("");
   const [priceRange, setPriceRange] = useState("");
   const [areaRange, setAreaRange] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-  
+  const [sort, setSort] = useState("displayOrder"); 
   // Ref for the property listings section
   const propertyListRef = useRef(null);
 
@@ -106,22 +106,28 @@ useEffect(() => {
       return matchesSearch && matchesCategory && matchesCity && matchesPriceRange && matchesArea;
     })
     .sort((a, b) => {
-      if (sort === "price-low") {
-        const priceA = a.price === "Price on Request" ? Infinity : (typeof a.price === 'number' ? a.price : parseFloat(a.price) || 0);
-        const priceB = b.price === "Price on Request" ? Infinity : (typeof b.price === 'number' ? b.price : parseFloat(b.price) || 0);
-        return priceA - priceB;
-      }
-      if (sort === "price-high") {
-        const priceA = a.price === "Price on Request" ? -1 : (typeof a.price === 'number' ? a.price : parseFloat(a.price) || 0);
-        const priceB = b.price === "Price on Request" ? -1 : (typeof b.price === 'number' ? b.price : parseFloat(b.price) || 0);
-        return priceB - priceA;
-      }
-      if (sort === "name") return a.title?.localeCompare(b.title) || 0;
-      if (sort === "area-low") return (a.attributes?.square || 0) - (b.attributes?.square || 0);
-      if (sort === "area-high") return (b.attributes?.square || 0) - (a.attributes?.square || 0);
-      if (sort === "newest") return new Date(b.createdAt) - new Date(a.createdAt);
-      if (sort === "oldest") return new Date(a.createdAt) - new Date(b.createdAt);
-      return 0;
+   if (sort === "displayOrder") {
+      // Sort by displayOrder first, then by createdAt for same displayOrder
+      const orderDiff = (a.displayOrder || 0) - (b.displayOrder || 0);
+      if (orderDiff !== 0) return orderDiff;
+      return new Date(b.createdAt) - new Date(a.createdAt); // newest first for same order
+    }
+    if (sort === "price-low") {
+      const priceA = a.price === "Price on Request" ? Infinity : (typeof a.price === 'number' ? a.price : parseFloat(a.price) || 0);
+      const priceB = b.price === "Price on Request" ? Infinity : (typeof b.price === 'number' ? b.price : parseFloat(b.price) || 0);
+      return priceA - priceB;
+    }
+    if (sort === "price-high") {
+      const priceA = a.price === "Price on Request" ? -1 : (typeof a.price === 'number' ? a.price : parseFloat(a.price) || 0);
+      const priceB = b.price === "Price on Request" ? -1 : (typeof b.price === 'number' ? b.price : parseFloat(b.price) || 0);
+      return priceB - priceA;
+    }
+    if (sort === "name") return a.title?.localeCompare(b.title) || 0;
+    if (sort === "area-low") return (a.attributes?.square || 0) - (b.attributes?.square || 0);
+    if (sort === "area-high") return (b.attributes?.square || 0) - (a.attributes?.square || 0);
+    if (sort === "newest") return new Date(b.createdAt) - new Date(a.createdAt);
+    if (sort === "oldest") return new Date(a.createdAt) - new Date(b.createdAt);
+    return 0;
     });
 
   const clearFilters = () => {
@@ -413,20 +419,21 @@ useEffect(() => {
           </div>
 
           <div className="flex gap-3 items-center">
-            <select
-              className="border-2 border-gray-300 rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-500 transition-all shadow-sm font-serif font-medium tracking-wide"
-              value={sort}
-              onChange={(e) => setSort(e.target.value)}
-            >
-              <option value="">Sort by</option>
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-              <option value="name">Name (A-Z)</option>
-              <option value="price-low">Price (Low to High)</option>
-              <option value="price-high">Price (High to Low)</option>
-              <option value="area-low">Area (Small to Large)</option>
-              <option value="area-high">Area (Large to Small)</option>
-            </select>
+         <select
+  className="border-2 border-gray-300 rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-500 transition-all shadow-sm font-serif font-medium tracking-wide"
+  value={sort}
+  onChange={(e) => setSort(e.target.value)}
+>
+  <option value="displayOrder">Featured Order</option>
+  <option value="newest">Newest First</option>
+  <option value="oldest">Oldest First</option>
+  <option value="name">Name (A-Z)</option>
+  <option value="price-low">Price (Low to High)</option>
+  <option value="price-high">Price (High to Low)</option>
+  <option value="area-low">Area (Small to Large)</option>
+  <option value="area-high">Area (Large to Small)</option>
+</select>
+
 
             <div className="flex gap-2 bg-white rounded-xl p-1 shadow-sm border-2 border-gray-300">
               <button

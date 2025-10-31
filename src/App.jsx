@@ -17,6 +17,8 @@ import { ViewModeProvider } from "./context/ViewModeContext";
 
 // Admin Pages
 import AdminDashboard from "./components/AdminDashboard";
+import AdminUsers from "./components/AdminUsers";
+import AdminProperties from "./components/AdminProperties";
 // import AdminProperties from "./pages/admin/AdminProperties";
 // import AdminUsers from "./pages/admin/AdminUsers";
 
@@ -63,22 +65,22 @@ export default function App() {
                   </AdminRoute>
                 }
               />
-              {/* <Route
-                path="/admin/properties"
-                element={
-                  <AdminRoute>
-                    <AdminProperties />
-                  </AdminRoute>
-                }
-              />
-              <Route
-                path="/admin/users"
-                element={
-                  <AdminRoute>
-                    <AdminUsers />
-                  </AdminRoute>
-                }
-              /> */}
+             <Route
+  path="/admin/properties"
+  element={
+    <AdminRoute>
+      <AdminProperties />
+    </AdminRoute>
+  }
+/>
+<Route
+  path="/admin/users"
+  element={
+    <AdminRoute>
+      <AdminUsers />
+    </AdminRoute>
+  }
+/>
             </Routes>
           </BrowserRouter>
         </ViewModeProvider>

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { fetchPendingProperties } from "../api/adminApi";
 import AdminPropertyTable from "../components/AdminPropertyTable";
+import AdminUsers from "./AdminUsers";
+import AdminProperties from "./AdminProperties";
 
 const AdminDashboard = () => {
   const [properties, setProperties] = useState([]);
@@ -25,11 +27,27 @@ const AdminDashboard = () => {
   if (loading) return <div className="text-center py-20 text-gray-500">Loading...</div>;
 
   return (
+    <div>
+
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-6 text-gray-800">Admin Property Review</h1>
         <AdminPropertyTable properties={properties} onUpdate={getProperties} />
       </div>
+    </div>
+
+      <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6 text-gray-800">Admin Property Review</h1>
+       <AdminUsers/>
+      </div>
+    </div>
+      <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6 text-gray-800">Admin Property Review</h1>
+       <AdminProperties/>
+      </div>
+    </div>
     </div>
   );
 };
