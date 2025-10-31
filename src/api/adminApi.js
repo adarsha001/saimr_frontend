@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api/admin",
+  baseURL: "https://saimr-backend-1.onrender.com/api/admin",
 });
 
 // Add token automatically
@@ -55,3 +55,9 @@ export const bulkUpdateProperties = (data) =>
 
 export const fetchPropertyStats = () => 
   API.get("/properties/stats");
+
+// Add to your existing adminApi.js
+export const updateProperty = (id, data) => API.put(`/properties/${id}`, data);
+export const patchProperty = (id, data) => API.patch(`/properties/${id}`, data);
+// Add to your adminApi.js
+// export const updateProperty = (id, data) => API.put(`/properties/${id}`, data);

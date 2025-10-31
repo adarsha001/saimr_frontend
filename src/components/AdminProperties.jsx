@@ -15,7 +15,18 @@ const ItemTypes = {
 };
 
 // Draggable Property Row Component
-const DraggablePropertyRow = ({ property, index, moveProperty, handlePropertySelect, selectedProperties, handleFeatureToggle, handleOrderChange, handleIndividualAction, getStatusBadge }) => {
+const DraggablePropertyRow = ({ 
+  property, 
+  index, 
+  moveProperty, 
+  handlePropertySelect, 
+  selectedProperties, 
+  handleFeatureToggle, 
+  handleOrderChange, 
+  handleIndividualAction, 
+  getStatusBadge,
+  onEditProperty // Add this prop
+}) => {
   const ref = React.useRef(null);
   const navigate = useNavigate();
 
@@ -166,6 +177,18 @@ const DraggablePropertyRow = ({ property, index, moveProperty, handlePropertySel
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex space-x-2">
+          {/* Edit Button */}
+          <button
+            onClick={() => onEditProperty(property._id)}
+            className="text-blue-600 hover:text-blue-900 transition-colors flex items-center space-x-1"
+            title="Edit Property"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            <span>Edit</span>
+          </button>
+
           {property.approvalStatus !== 'approved' && (
             <button
               onClick={() => handleIndividualAction(property._id, 'approvalStatus', 'approved')}
@@ -195,7 +218,6 @@ const DraggablePropertyRow = ({ property, index, moveProperty, handlePropertySel
               Mark Pending
             </button>
           )}
-     
         </div>
       </td>
     </tr>
@@ -363,7 +385,7 @@ const BulkEditModal = ({ isOpen, onClose, selectedCount, onBulkUpdate }) => {
 };
 
 // Main Admin Properties Component
-const AdminProperties = () => {
+const AdminProperties = ({ onEditProperty }) => { // Add onEditProperty prop
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
@@ -998,6 +1020,7 @@ const AdminProperties = () => {
                       handleOrderChange={handleOrderChange}
                       handleIndividualAction={handleIndividualAction}
                       getStatusBadge={getStatusBadge}
+                      onEditProperty={onEditProperty} // Pass the edit function
                     />
                   ))}
                 </tbody>
@@ -1053,4 +1076,4 @@ const AdminProperties = () => {
   );
 };
 
-export default AdminProperties; 
+export default AdminProperties;

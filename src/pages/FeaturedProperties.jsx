@@ -12,6 +12,7 @@ export default function FeaturedProperties() {
     const fetchProperties = async () => {
       try {
         const res = await getProperties();
+        console.log("fetaured",res)
         const featured = res.data.properties.filter((p) => p.isFeatured);
         setProperties(featured);
       } catch (err) {

@@ -9,9 +9,9 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import { AuthProvider } from "./context/AuthContext";
-import { LikesProvider } from "./context/LikesContext"; // Import LikesProvider
+import { LikesProvider } from "./context/LikesContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import AdminRoute  from "./components/AdminRoute";  // Import AdminRoute
+import AdminRoute from "./components/AdminRoute";
 import Home from "./container/Home";
 import { ViewModeProvider } from "./context/ViewModeContext";
 
@@ -19,13 +19,12 @@ import { ViewModeProvider } from "./context/ViewModeContext";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminUsers from "./components/AdminUsers";
 import AdminProperties from "./components/AdminProperties";
-// import AdminProperties from "./pages/admin/AdminProperties";
-// import AdminUsers from "./pages/admin/AdminUsers";
+import AdminClickAnalytics from "./components/AdminClickAnalytics"; // Import the analytics component
 
 export default function App() {
   return (
     <AuthProvider>
-      <LikesProvider> {/* Wrap with LikesProvider */}
+      <LikesProvider>
         <ViewModeProvider>
           <BrowserRouter>
             <Navbar />
@@ -65,22 +64,31 @@ export default function App() {
                   </AdminRoute>
                 }
               />
-             <Route
-  path="/admin/properties"
-  element={
-    <AdminRoute>
-      <AdminProperties />
-    </AdminRoute>
-  }
-/>
-<Route
-  path="/admin/users"
-  element={
-    <AdminRoute>
-      <AdminUsers />
-    </AdminRoute>
-  }
-/>
+              <Route
+                path="/admin/properties"
+                element={
+                  <AdminRoute>
+                    <AdminProperties />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <AdminRoute>
+                    <AdminUsers />
+                  </AdminRoute>
+                }
+              />
+              {/* Add Admin Analytics Route */}
+              <Route
+                path="/admin/analytics"
+                element={
+                  <AdminRoute>
+                    <AdminClickAnalytics />
+                  </AdminRoute>
+                }
+              />
             </Routes>
           </BrowserRouter>
         </ViewModeProvider>

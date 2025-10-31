@@ -13,7 +13,6 @@ export default function Navbar() {
       setShowTooltip(true);
       setTimeout(() => setShowTooltip(false), 3000);
     }
-    // Close mobile menu when clicking on a link
     setIsMobileMenuOpen(false);
   };
 
@@ -26,8 +25,18 @@ export default function Navbar() {
     setIsMobileMenuOpen(false);
   };
 
+  // Debug: Check what's in the user object
+  console.log("Full user object:", user);
+  console.log("User role:", user?.role);
+  console.log("User isAdmin:", user?.isAdmin);
+  console.log("All user keys:", user ? Object.keys(user) : 'No user');
+
+  // Check for admin in multiple possible fields
+  const isAdmin = user?.role === 'admin' || user?.isAdmin === true || user?.admin === true;
+  console.log("Final isAdmin check:", isAdmin);
+
   return (
-    <nav className="bg-white text-gray-900 shadow-lg border-b border-gray-200    z-40 w-full">
+    <nav className="bg-white text-gray-900 shadow-lg border-b border-gray-200 z-40 w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -50,7 +59,21 @@ export default function Navbar() {
               Properties
             </Link>
             
-            {/* Add Property with Tooltip */}
+            {/* Admin Dashboard Button - Only for Admin Users */}
+            {isAdmin && (
+              <Link 
+                to="/admin"
+                className="bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors text-sm border border-purple-600 flex items-center space-x-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>Admin</span>
+              </Link>
+            )}
+            
+            {/* Rest of your navbar code remains the same */}
             <div className="relative">
               <Link 
                 to={user ? "/add-property" : "#"}
@@ -64,7 +87,6 @@ export default function Navbar() {
                 Add Property
               </Link>
               
-              {/* Tooltip for non-logged in users */}
               {showTooltip && !user && (
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gray-800 text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap z-50">
                   Please login to add property
@@ -106,7 +128,7 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile menu and rest of code remains the same */}
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -114,7 +136,6 @@ export default function Navbar() {
               aria-expanded="false"
             >
               <span className="sr-only">Open main menu</span>
-              {/* Hamburger icon */}
               <svg
                 className={`${isMobileMenuOpen ? 'hidden' : 'block'} h-6 w-6`}
                 stroke="currentColor"
@@ -128,7 +149,6 @@ export default function Navbar() {
                   d="M4 6h16M4 12h16M4 18h16"
                 />
               </svg>
-              {/* Close icon */}
               <svg
                 className={`${isMobileMenuOpen ? 'block' : 'hidden'} h-6 w-6`}
                 stroke="currentColor"
@@ -158,7 +178,21 @@ export default function Navbar() {
             Properties
           </Link>
 
-          {/* Add Property for Mobile */}
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="block px-3 py-2 rounded-md text-base font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors border border-purple-600 flex items-center space-x-2"
+              onClick={handleNavLinkClick}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span>Admin Dashboard</span>
+            </Link>
+          )}
+
+          {/* Rest of mobile menu remains the same */}
           <div className="relative">
             <Link
               to={user ? "/add-property" : "#"}
@@ -172,7 +206,6 @@ export default function Navbar() {
               Add Property
             </Link>
             
-            {/* Mobile Tooltip */}
             {showTooltip && !user && (
               <div className="absolute left-0 right-0 mt-2 mx-2 bg-gray-800 text-white text-sm px-3 py-2 rounded-lg z-50">
                 Please login to add property
