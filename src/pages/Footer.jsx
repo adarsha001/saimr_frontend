@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { trackClickPublic } from '../api/clickTracker'; // Import the public tracker
+import { trackClickPublic } from '../api/clickTracker'; // Import the enhanced tracker
 
 export default function Footer() {
   const [clickedItem, setClickedItem] = useState(null);
@@ -8,12 +8,12 @@ export default function Footer() {
     const itemKey = `${itemType}-${itemValue}`;
     setClickedItem(itemKey);
     
-    // Track the click using PUBLIC API (works for all users)
+    // Track the click using ENHANCED PUBLIC API (includes user data)
     await trackClickPublic({
       itemType,
       itemValue,
       displayName: displayName || `${itemType}: ${itemValue}`,
-      page: window.location.pathname
+      propertyId: null // Add if you have property context
     });
 
     // If there's a URL, open it in a new tab
@@ -23,6 +23,17 @@ export default function Footer() {
 
     // Reset animation after 1 second
     setTimeout(() => setClickedItem(null), 1000);
+  };
+
+  // Debug function to check localStorage
+  const debugLocalStorage = () => {
+    const user = localStorage.getItem('user');
+    const sessionId = localStorage.getItem('sessionId');
+    console.log('🔍 LocalStorage Debug:', {
+      user: user ? JSON.parse(user) : null,
+      sessionId: sessionId,
+      hasUser: !!user
+    });
   };
 
   // Social media links with their actual URLs
@@ -81,6 +92,18 @@ export default function Footer() {
 
   return (
     <footer className="bg-black text-white">
+      {/* Debug button - remove in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="container mx-auto px-4 py-2">
+          <button 
+            onClick={debugLocalStorage}
+            className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded"
+          >
+            🔍 Debug LocalStorage
+          </button>
+        </div>
+      )}
+
       {/* Main Footer Content */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
@@ -102,9 +125,9 @@ export default function Footer() {
               {socialLinks.map((social) => (
                 <button
                   key={social.platform}
-                  onClick={() => handleClick(social.platform, social.platform, `${social.label} social link`, social.url)}
+                  onClick={() => handleClick(social.platform, social.url, `${social.label} social link`, social.url)}
                   className={`w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition-all duration-300 ${
-                    clickedItem === `${social.platform}-${social.platform}` ? 'scale-110 bg-white' : ''
+                    clickedItem === `${social.platform}-${social.url}` ? 'scale-110 bg-white' : ''
                   }`}
                   aria-label={social.label}
                   title={social.label}

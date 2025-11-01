@@ -41,7 +41,7 @@ API.interceptors.response.use(
   }
 );
 
-// Click Analytics Endpoints - FIXED
+// Click Analytics Endpoints
 export const fetchClickAnalytics = (timeframe = '7d', type, propertyId) => {
   const params = { timeframe };
   if (type) params.type = type;
@@ -70,7 +70,20 @@ export const fetchClickTrends = (timeframe = '30d', groupBy = 'day') => {
   });
 };
 
-// ✅ FIXED: Using API instead of api
+// User Analytics Endpoints
+export const fetchUserAnalytics = async (timeframe = '30d', userId = null) => {
+  try {
+    const params = { timeframe };
+    if (userId) params.userId = userId;
+    
+    console.log('👤 Fetching user analytics:', params);
+    const response = await API.get("/analytics/users", { params });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const fetchCompleteAnalytics = async (timeframe = '7d', includeRawData = false) => {
   try {
     const response = await API.get("/analytics/clicks", { 
@@ -150,10 +163,6 @@ export const exportClickData = async (format = 'json', timeframe = '30d') => {
   }
 };
 
-
-
-// Update your fetchHourlyDistribution function in adminApi.js
-// Update your fetchHourlyDistribution function to log the actual data
 export const fetchHourlyDistribution = async (timeframe = '7d', groupBy = 'hour') => {
   try {
     console.log('🕒 Fetching hourly distribution for timeframe:', timeframe);
@@ -164,7 +173,6 @@ export const fetchHourlyDistribution = async (timeframe = '7d', groupBy = 'hour'
     
     console.log('✅ Hourly distribution API response:', response.data);
     
-    // Detailed logging of the data structure
     if (response.data.success && response.data.data) {
       console.log('📊 Detailed data structure:');
       console.log('- Hourly distribution array length:', response.data.data.hourlyDistribution?.length);
@@ -172,7 +180,6 @@ export const fetchHourlyDistribution = async (timeframe = '7d', groupBy = 'hour'
       console.log('- Summary:', response.data.data.summary);
       console.log('- Total clicks:', response.data.data.summary?.totalClicks);
       
-      // Log all hours with clicks > 0
       const activeHours = response.data.data.hourlyDistribution?.filter(hour => hour.clicks > 0);
       console.log('- Active hours:', activeHours);
     }
@@ -184,6 +191,7 @@ export const fetchHourlyDistribution = async (timeframe = '7d', groupBy = 'hour'
     throw error;
   }
 };
+
 // Test connection first
 export const testConnection = () => API.get("/test");
 
@@ -214,4 +222,3 @@ export const fetchPropertyStats = () =>
 
 export const updateProperty = (id, data) => API.put(`/properties/${id}`, data);
 export const patchProperty = (id, data) => API.patch(`/properties/${id}`, data);
-// Add this function to your adminApi.js

@@ -1056,290 +1056,355 @@ const fetchHourlyData = async () => {
     )}
   </div>
 )}
-      {viewMode === 'user-sessions' && (
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
-          <h3 className="text-lg font-semibold mb-4">User Sessions Analysis</h3>
-          
-          {/* Session statistics */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{formatNumber(summary.uniqueSessionsCount)}</div>
-              <div className="text-sm text-blue-800">Total Sessions</div>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">
-                {summary.uniqueSessionsCount > 0 ? Math.round(summary.totalClicks / summary.uniqueSessionsCount) : 0}
-              </div>
-              <div className="text-sm text-green-800">Clicks per Session</div>
-            </div>
-            <div className="bg-purple-50 p-4 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">
-                {summary.uniqueUsersCount > 0 ? (summary.uniqueSessionsCount / summary.uniqueUsersCount).toFixed(1) : 0}
-              </div>
-              <div className="text-sm text-purple-800">Sessions per User</div>
-            </div>
-            <div className="bg-orange-50 p-4 rounded-lg">
-              <div className="text-2xl font-bold text-orange-600">
-                {sessions.length > 0 ? 
-                  formatSessionDuration(sessions.reduce((acc, session) => acc + (session.sessionDuration || 0), 0) / sessions.length) 
-                  : '0 min'
-                }
-              </div>
-              <div className="text-sm text-orange-800">Avg Session Duration</div>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Session ID</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Device</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clicks</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clicks/Min</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Activity</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {sessions.map((session, index) => (
-                  <tr key={session.sessionId} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 font-mono">
-                      {session.sessionId?.substring(0, 10)}...
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                      {session.userId ? 'Registered' : 'Anonymous'}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex items-center space-x-1">
-                        <span>{getCountryFlag(session.location?.country)}</span>
-                        <span>{session.location?.country}</span>
-                        {session.location?.city !== 'Unknown' && <span>• {session.location?.city}</span>}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex items-center space-x-1">
-                        <span>{getDeviceIcon(session.deviceType)}</span>
-                        <span className="capitalize">{session.deviceType}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                      {formatSessionDuration(session.sessionDuration)}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">
-                      {session.totalClicks}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                      {session.uniqueItemsCount}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                      {session.clicksPerMinute?.toFixed(1) || '0'}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(session.lastActivity).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          {sessions.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              No session data available for the selected timeframe.
-            </div>
-          )}
+   {viewMode === 'user-sessions' && (
+  <div className="bg-white p-6 rounded-lg border border-gray-200">
+    <h3 className="text-lg font-semibold mb-4">User Sessions Analysis</h3>
+    
+    {/* Session statistics */}
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="bg-blue-50 p-4 rounded-lg">
+        <div className="text-2xl font-bold text-blue-600">{formatNumber(summary.uniqueSessionsCount)}</div>
+        <div className="text-sm text-blue-800">Total Sessions</div>
+      </div>
+      <div className="bg-green-50 p-4 rounded-lg">
+        <div className="text-2xl font-bold text-green-600">
+          {summary.uniqueSessionsCount > 0 ? Math.round(summary.totalClicks / summary.uniqueSessionsCount) : 0}
         </div>
-      )}
+        <div className="text-sm text-green-800">Clicks per Session</div>
+      </div>
+      <div className="bg-purple-50 p-4 rounded-lg">
+        <div className="text-2xl font-bold text-purple-600">
+          {summary.uniqueUsersCount > 0 ? (summary.uniqueSessionsCount / summary.uniqueUsersCount).toFixed(1) : 0}
+        </div>
+        <div className="text-sm text-purple-800">Sessions per User</div>
+      </div>
+      <div className="bg-orange-50 p-4 rounded-lg">
+        <div className="text-2xl font-bold text-orange-600">
+          {sessions.length > 0 ? 
+            formatSessionDuration(sessions.reduce((acc, session) => acc + (session.sessionDuration || 0), 0) / sessions.length) 
+            : '0 min'
+          }
+        </div>
+        <div className="text-sm text-orange-800">Avg Session Duration</div>
+      </div>
+    </div>
 
-      {viewMode === 'geo-analysis' && (
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
-          <h3 className="text-lg font-semibold mb-4">Geographic Analysis</h3>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-3">Top Countries</h4>
-              <div className="space-y-2 max-h-80 overflow-y-auto">
-                {(() => {
-                  // Safely process geographic data
-                  const countryData = {};
-                  
-                  // Use raw data if geographicData is empty
-                  const dataSource = geographicData.length > 0 ? geographicData : rawData;
-                  
-                  dataSource.forEach(item => {
-                    const country = item.country || 'Unknown';
-                    if (!countryData[country]) {
-                      countryData[country] = { clicks: 0, users: new Set(), sessions: new Set() };
-                    }
-                    countryData[country].clicks += item.clicks || 1;
-                    if (item.ipAddress) countryData[country].users.add(item.ipAddress);
-                    if (item.sessionId) countryData[country].sessions.add(item.sessionId);
-                  });
-
-                  return Object.entries(countryData)
-                    .sort(([,a], [,b]) => b.clicks - a.clicks)
-                    .map(([country, data]) => (
-                      <div key={country} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <span className="text-xl">{getCountryFlag(country)}</span>
-                          <div>
-                            <span className="font-medium block">{country}</span>
-                            <span className="text-sm text-gray-500">
-                              {data.users.size} users • {data.sessions.size} sessions
-                            </span>
-                          </div>
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Session ID</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Device</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clicks</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clicks/Min</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Activity</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {sessions.map((session, index) => (
+            <React.Fragment key={session.sessionId}>
+              <tr className="hover:bg-gray-50">
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                  <div className="flex items-center space-x-2">
+                    {session.userId ? (
+                      <>
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                          {session.userName ? session.userName.charAt(0).toUpperCase() : 'U'}
                         </div>
-                        <div className="text-right">
-                          <span className="text-lg font-semibold text-blue-600 block">{data.clicks}</span>
-                          <span className="text-sm text-gray-500">clicks</span>
-                        </div>
-                      </div>
-                    ));
-                })()}
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-3">Top Cities</h4>
-              <div className="space-y-2 max-h-80 overflow-y-auto">
-                {(() => {
-                  const cityData = {};
-                  
-                  // Use raw data if geographicData is empty
-                  const dataSource = geographicData.length > 0 ? geographicData : rawData;
-                  
-                  dataSource
-                    .filter(item => item.city && item.city !== 'Unknown')
-                    .forEach(item => {
-                      const location = `${item.city}, ${item.country}`;
-                      if (!cityData[location]) {
-                        cityData[location] = { clicks: 0, users: new Set(), sessions: new Set() };
-                      }
-                      cityData[location].clicks += item.clicks || 1;
-                      if (item.ipAddress) cityData[location].users.add(item.ipAddress);
-                      if (item.sessionId) cityData[location].sessions.add(item.sessionId);
-                    });
-
-                  return Object.entries(cityData)
-                    .sort(([,a], [,b]) => b.clicks - a.clicks)
-                    .slice(0, 15)
-                    .map(([location, data], index) => (
-                      <div key={location} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                         <div>
-                          <span className="font-medium block">{location}</span>
-                          <span className="text-sm text-gray-500">
-                            {data.users.size} users • {data.sessions.size} sessions
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-lg font-semibold text-green-600 block">{data.clicks}</span>
-                          <span className="text-sm text-gray-500">clicks</span>
-                        </div>
-                      </div>
-                    ));
-                })()}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {viewMode === 'device-analysis' && (
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
-          <h3 className="text-lg font-semibold mb-4">Device Analysis</h3>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-3">Device Types</h4>
-              <div className="space-y-3">
-                {(() => {
-                  // Use deviceData if available, otherwise calculate from raw data
-                  const devices = deviceData.length > 0 ? deviceData : 
-                    Object.entries(
-                      rawData.reduce((acc, item) => {
-                        const device = item.deviceType || 'desktop';
-                        acc[device] = (acc[device] || 0) + 1;
-                        return acc;
-                      }, {})
-                    ).map(([deviceType, clicks]) => ({ deviceType, clicks }));
-
-                  return devices
-                    .sort((a, b) => b.clicks - a.clicks)
-                    .map((item) => (
-                      <div key={item.deviceType} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <span className="text-xl">{getDeviceIcon(item.deviceType)}</span>
-                          <div>
-                            <span className="font-medium capitalize block">{item.deviceType}</span>
-                            <span className="text-sm text-gray-500">
-                              {item.uniqueUsersCount || 'N/A'} users
-                            </span>
+                          <div className="font-medium text-gray-900">
+                            {session.userName || 'Unknown User'}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {session.userId.substring(0, 8)}...
                           </div>
                         </div>
-                        <div className="text-right">
-                          <span className="text-lg font-semibold text-blue-600 block">{item.clicks}</span>
-                          <span className="text-sm text-gray-500">
-                            {((item.clicks / summary.totalClicks) * 100).toFixed(1)}%
-                          </span>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                          A
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">Anonymous</div>
+                          <div className="text-xs text-gray-500">
+                            {session.ipAddress ? formatIPAddress(session.ipAddress) : 'Unknown IP'}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 font-mono">
+                  {session.sessionId?.substring(0, 10)}...
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                  <div className="flex items-center space-x-1">
+                    <span>{getCountryFlag(session.location?.country)}</span>
+                    <span>{session.location?.country || 'Unknown'}</span>
+                    {session.location?.city && session.location.city !== 'Unknown' && (
+                      <span>• {session.location.city}</span>
+                    )}
+                  </div>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                  <div className="flex items-center space-x-1">
+                    <span>{getDeviceIcon(session.deviceType)}</span>
+                    <span className="capitalize">{session.deviceType || 'desktop'}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                  {formatSessionDuration(session.sessionDuration)}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">
+                  {session.totalClicks}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                  {session.uniqueItemsCount}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                  {session.clicksPerMinute?.toFixed(1) || '0'}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                  {new Date(session.lastActivity).toLocaleString()}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                  <button
+                    onClick={() => setSelectedItem({ type: 'session', data: session })}
+                    className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors"
+                  >
+                    View Clicks
+                  </button>
+                </td>
+              </tr>
+              
+              {/* Expanded session details when selected */}
+              {selectedItem?.type === 'session' && selectedItem?.data?.sessionId === session.sessionId && (
+                <tr>
+                  <td colSpan="10" className="px-4 py-4 bg-gray-50">
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <div>
+                          <h4 className="font-semibold text-gray-800">
+                            Session Details - {session.totalClicks} Clicks
+                          </h4>
+                          <div className="text-sm text-gray-600 mt-1">
+                            {session.userId ? (
+                              <span>User: <strong>{session.userName || 'Unknown'}</strong> ({session.userId.substring(0, 8)}...)</span>
+                            ) : (
+                              <span>Anonymous User - IP: {formatIPAddress(session.ipAddress)}</span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setSelectedItem(null)}
+                          className="text-gray-400 hover:text-gray-600 text-lg"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      
+                      {/* Session Summary */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 p-3 bg-blue-50 rounded-lg">
+                        <div>
+                          <div className="text-xs text-blue-600 font-medium">Start Time</div>
+                          <div className="text-sm font-semibold">
+                            {session.firstActivity ? new Date(session.firstActivity).toLocaleString() : 'N/A'}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-blue-600 font-medium">End Time</div>
+                          <div className="text-sm font-semibold">
+                            {new Date(session.lastActivity).toLocaleString()}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-blue-600 font-medium">Session Duration</div>
+                          <div className="text-sm font-semibold">
+                            {formatSessionDuration(session.sessionDuration)}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-blue-600 font-medium">Clicks/Minute</div>
+                          <div className="text-sm font-semibold">
+                            {session.clicksPerMinute?.toFixed(1) || '0'}
+                          </div>
                         </div>
                       </div>
-                    ));
-                })()}
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-3">Device Distribution</h4>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={(() => {
-                      const devices = deviceData.length > 0 ? deviceData : 
-                        Object.entries(
-                          rawData.reduce((acc, item) => {
-                            const device = item.deviceType || 'desktop';
-                            acc[device] = (acc[device] || 0) + 1;
-                            return acc;
-                          }, {})
-                        ).map(([deviceType, clicks]) => ({ 
-                          name: deviceType.charAt(0).toUpperCase() + deviceType.slice(1), 
-                          value: clicks 
-                        }));
-                      
-                      return devices.length > 0 ? devices : [{ name: 'No Data', value: 1 }];
-                    })()}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {(() => {
-                      const devices = deviceData.length > 0 ? deviceData : 
-                        Object.entries(
-                          rawData.reduce((acc, item) => {
-                            const device = item.deviceType || 'desktop';
-                            acc[device] = (acc[device] || 0) + 1;
-                            return acc;
-                          }, {})
-                        ).map(([deviceType, clicks]) => ({ deviceType, clicks }));
-                      
-                      return devices.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ));
-                    })()}
-                  </Pie>
-                  <Tooltip formatter={(value) => [value, 'Clicks']} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-      )}
-// Update your React component
-// In your ClickAnalyticsDetails.jsx - Fix the hourly analysis section
+
+                      {/* User Information */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <div className="text-xs text-gray-600 font-medium">Device</div>
+                          <div className="text-sm font-semibold flex items-center space-x-1">
+                            <span>{getDeviceIcon(session.deviceType)}</span>
+                            <span className="capitalize">{session.deviceType || 'desktop'}</span>
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-600 font-medium">Location</div>
+                          <div className="text-sm font-semibold flex items-center space-x-1">
+                            <span>{getCountryFlag(session.location?.country)}</span>
+                            <span>{session.location?.country || 'Unknown'}</span>
+                            {session.location?.city && session.location.city !== 'Unknown' && (
+                              <span>• {session.location.city}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-600 font-medium">User Type</div>
+                          <div className="text-sm font-semibold">
+                            {session.userId ? (
+                              <span className="text-green-600">Registered User</span>
+                            ) : (
+                              <span className="text-orange-600">Anonymous Visitor</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Click Details Table */}
+                      {session.clicks && session.clicks.length > 0 ? (
+                        <div className="overflow-x-auto max-h-96">
+                          <table className="min-w-full divide-y divide-gray-200 text-sm">
+                            <thead className="bg-gray-100 sticky top-0">
+                              <tr>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Display Name</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Value</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Property</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Page</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                              {session.clicks
+                                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                                .map((click, clickIndex) => (
+                                <tr key={clickIndex} className="hover:bg-gray-50">
+                                  <td className="px-3 py-2 whitespace-nowrap text-gray-500">
+                                    {click.timestamp ? new Date(click.timestamp).toLocaleTimeString() : 'N/A'}
+                                  </td>
+                                  <td className="px-3 py-2 whitespace-nowrap">
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium capitalize ${
+                                      click.itemType === 'phone' ? 'bg-green-100 text-green-800' :
+                                      click.itemType === 'whatsapp' ? 'bg-green-100 text-green-800' :
+                                      click.itemType === 'email' ? 'bg-blue-100 text-blue-800' :
+                                      click.itemType === 'instagram' ? 'bg-pink-100 text-pink-800' :
+                                      click.itemType === 'facebook' ? 'bg-blue-100 text-blue-800' :
+                                      click.itemType === 'website' ? 'bg-purple-100 text-purple-800' :
+                                      'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {click.itemType}
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2 whitespace-nowrap font-medium text-gray-900">
+                                    {click.displayName}
+                                  </td>
+                                  <td className="px-3 py-2 whitespace-nowrap text-gray-600 max-w-xs">
+                                    <div className="truncate" title={click.itemValue}>
+                                      {click.itemValue}
+                                    </div>
+                                  </td>
+                                  <td className="px-3 py-2 whitespace-nowrap text-gray-500">
+                                    {click.propertyId ? (
+                                      <span className="text-green-600">Yes</span>
+                                    ) : (
+                                      <span className="text-gray-400">No</span>
+                                    )}
+                                  </td>
+                                  <td className="px-3 py-2 whitespace-nowrap text-gray-500 text-xs">
+                                    <div className="truncate max-w-xs" title={click.pageUrl}>
+                                      {click.pageUrl || 'N/A'}
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                          <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 17v-2a2 2 0 00-2-2H5a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v8m-6 0h6m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                          </svg>
+                          <p>No detailed click data available for this session</p>
+                        </div>
+                      )}
+
+                      {/* Click Statistics */}
+                      {session.clicks && session.clicks.length > 0 && (
+                        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 p-3 bg-green-50 rounded-lg">
+                          <div>
+                            <div className="text-xs text-green-600 font-medium">Total Clicks</div>
+                            <div className="text-sm font-semibold">{session.clicks.length}</div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-green-600 font-medium">Unique Items</div>
+                            <div className="text-sm font-semibold">
+                              {new Set(session.clicks.map(click => click.itemValue)).size}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-green-600 font-medium">Item Types</div>
+                            <div className="text-sm font-semibold">
+                              {new Set(session.clicks.map(click => click.itemType)).size}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-green-600 font-medium">Properties</div>
+                            <div className="text-sm font-semibold">
+                              {new Set(session.clicks.filter(click => click.propertyId).map(click => click.propertyId)).size}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Item Type Breakdown */}
+                      {session.clicks && session.clicks.length > 0 && (
+                        <div className="mt-4 p-3 bg-purple-50 rounded-lg">
+                          <h5 className="text-sm font-semibold text-purple-800 mb-2">Click Type Breakdown</h5>
+                          <div className="flex flex-wrap gap-2">
+                            {Object.entries(
+                              session.clicks.reduce((acc, click) => {
+                                acc[click.itemType] = (acc[click.itemType] || 0) + 1;
+                                return acc;
+                              }, {})
+                            ).map(([type, count]) => (
+                              <div key={type} className="bg-white px-3 py-1 rounded-full text-xs border border-purple-200">
+                                <span className="font-medium capitalize">{type}:</span> 
+                                <span className="ml-1 text-purple-600">{count}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </React.Fragment>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    
+    {sessions.length === 0 && (
+      <div className="text-center py-8 text-gray-500">
+        <svg className="w-16 h-16 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+        </svg>
+        <p>No session data available for the selected timeframe.</p>
+      </div>
+    )}
+  </div>
+)}
+
 {viewMode === 'hourly-analysis' && (
   <div className="bg-white p-6 rounded-lg border border-gray-200">
     <div className="flex justify-between items-center mb-6">
