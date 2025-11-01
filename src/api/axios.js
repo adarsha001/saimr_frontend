@@ -1,10 +1,11 @@
 import axios from "axios";
 
-// Use environment variable or fallback to localhost:5000
-const BASE_URL = "https://saimr-backend-1.onrender.com";
+// Use environment variable or fallback to Render URL
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api` || "https://saimr-backend-1.onrender.com/api";
+;
 
 const API = axios.create({
-  baseURL: `${BASE_URL}/api`,
+  baseURL: BASE_URL,
   timeout: 30000, // Increase timeout for file uploads
 });
 
@@ -40,6 +41,7 @@ export const createProperty = (formData) => API.post("/properties", formData, {
     'Content-Type': 'multipart/form-data'
   }
 });
+
 // Like APIs
 export const likeProperty = (propertyId) => API.post(`/users/like/${propertyId}`);
 export const unlikeProperty = (propertyId) => API.delete(`/users/like/${propertyId}`);
