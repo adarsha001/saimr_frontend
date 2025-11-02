@@ -19,14 +19,15 @@ import { ViewModeProvider } from "./context/ViewModeContext";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminUsers from "./components/AdminUsers";
 import AdminProperties from "./components/AdminProperties";
-import AdminClickAnalytics from "./components/AdminClickAnalytics"; // Import the analytics component
+import AdminClickAnalytics from "./components/AdminClickAnalytics";
 
 export default function App() {
   return (
-    <AuthProvider>
-      <LikesProvider>
-        <ViewModeProvider>
-          <BrowserRouter>
+    // REMOVE DUPLICATE AuthProvider - Only wrap once at the root level
+    <BrowserRouter>
+      <AuthProvider>
+        <LikesProvider>
+          <ViewModeProvider>
             <Navbar />
             <Routes>
               {/* Public Routes */}
@@ -80,7 +81,6 @@ export default function App() {
                   </AdminRoute>
                 }
               />
-              {/* Add Admin Analytics Route */}
               <Route
                 path="/admin/analytics"
                 element={
@@ -90,9 +90,9 @@ export default function App() {
                 }
               />
             </Routes>
-          </BrowserRouter>
-        </ViewModeProvider>
-      </LikesProvider>
-    </AuthProvider>
+          </ViewModeProvider>
+        </LikesProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

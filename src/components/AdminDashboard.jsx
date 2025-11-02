@@ -1,4 +1,3 @@
-// components/AdminDashboard.js
 import React, { useEffect, useState } from "react";
 import { fetchPendingProperties } from "../api/adminApi";
 import AdminPropertyTable from "../components/AdminPropertyTable";
@@ -8,6 +7,7 @@ import PropertyEdit from "./PropertyEdit";
 import AdminClickAnalytics from "./AdminClickAnalytics";
 import ClickAnalyticsDetails from "./ClickAnalyticsDetails";
 import { useAuth } from "../context/AuthContext";
+import LoadingSpinner from "./LoadingSpinner";
 
 const AdminDashboard = () => {
   const [properties, setProperties] = useState([]);
@@ -15,11 +15,37 @@ const AdminDashboard = () => {
   const [error, setError] = useState(null);
   const [activeSection, setActiveSection] = useState("properties");
   const [editingProperty, setEditingProperty] = useState(null);
-  const [analyticsView, setAnalyticsView] = useState("overview"); // "overview" or "details"
+  const [analyticsView, setAnalyticsView] = useState("overview");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
 
+  // Safe check for auth
+  useEffect(() => {
+    console.log('🔐 AdminDashboard auth state:', {
+      authLoading,
+      isAuthenticated,
+      user: user ? { id: user.id, name: user.name, isAdmin: user.isAdmin } : null
+    });
+  }, [authLoading, isAuthenticated, user]);
+
+  // Show loading while auth is being checked
+  if (authLoading) {
+    return <LoadingSpinner message="Checking admin permissions..." />;
+  }
+
+  // Safe redirect if not authenticated or not admin
+  if (!isAuthenticated) {
+    console.log('🔒 Not authenticated, redirecting to login');
+    window.location.href = '/login';
+    return null;
+  }
+
+  if (!user?.isAdmin) {
+    console.log('🚫 Not admin, redirecting to home');
+    window.location.href = '/';
+    return null;
+  }
   // Redirect if not admin
   useEffect(() => {
     if (!isAuthenticated || !user?.isAdmin) {

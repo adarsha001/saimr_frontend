@@ -2,25 +2,74 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import API from '../api/axios';
 
-const AuthContext = createContext();
+// Create context with default values
+const AuthContext = createContext({
+  user: null,
+  isAuthenticated: false,
+  login: async () => { 
+    console.error('AuthProvider not found');
+    throw new Error('AuthProvider not found');
+  },
+  register: async () => { 
+    console.error('AuthProvider not found');
+    throw new Error('AuthProvider not found');
+  },
+  logout: () => {
+    console.error('AuthProvider not found');
+  },
+  updateUser: () => {
+    console.error('AuthProvider not found');
+  },
+  loading: true,
+  userInfo: null
+});
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    try {
-      const storedUser = localStorage.getItem('user');
-      console.log('🔄 Reading user from localStorage:', storedUser);
-      return storedUser ? JSON.parse(storedUser) : null;
-    } catch (error) {
-      console.error('❌ Error parsing stored user:', error);
-      return null;
-    }
-  });
-
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  console.log('🔐 Current auth state:', { user, hasUser: !!user });
+  console.log('🔐 AuthProvider initialized - Setting up context');
 
-  // Initialize session ID on app start
+  // Initialize user from localStorage on mount
+  useEffect(() => {
+    const initializeAuth = () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        const token = localStorage.getItem('token');
+        
+        console.log('🔄 Initializing auth from localStorage:', { 
+          hasStoredUser: !!storedUser, 
+          hasToken: !!token 
+        });
+
+        if (storedUser && token) {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          console.log('✅ User restored from localStorage:', {
+            id: parsedUser.id,
+            name: parsedUser.name,
+            username: parsedUser.username,
+            isAdmin: parsedUser.isAdmin
+          });
+        } else {
+          console.log('ℹ️ No stored user found');
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('❌ Error initializing auth:', error);
+        setUser(null);
+        // Clear corrupted data
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
+  }, []);
+
+  // Initialize session ID
   useEffect(() => {
     const initializeSession = () => {
       let sessionId = localStorage.getItem('sessionId');
@@ -32,7 +81,6 @@ export const AuthProvider = ({ children }) => {
     };
     
     initializeSession();
-    setLoading(false);
   }, []);
 
   const login = async (emailOrUsername, password) => {
@@ -49,7 +97,7 @@ export const AuthProvider = ({ children }) => {
           id: data.user.id,
           name: data.user.name,
           username: data.user.username,
-          gmail: data.user.gmail
+          isAdmin: data.user.isAdmin
         });
         
         return { success: true, user: data.user };
@@ -76,7 +124,7 @@ export const AuthProvider = ({ children }) => {
           id: data.user.id,
           name: data.user.name,
           username: data.user.username,
-          gmail: data.user.gmail
+          isAdmin: data.user.isAdmin
         });
         
         return { success: true, user: data.user };
@@ -116,6 +164,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateUser,
+    loading,
     isAuthenticated: !!user,
     userInfo: user ? {
       id: user.id,
@@ -128,13 +177,11 @@ export const AuthProvider = ({ children }) => {
     } : null
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  console.log('🔐 Current auth state:', { 
+    user: user ? { id: user.id, name: user.name, isAdmin: user.isAdmin } : null, 
+    loading,
+    isAuthenticated: !!user 
+  });
 
   return (
     <AuthContext.Provider value={value}>
@@ -145,18 +192,34 @@ export const AuthProvider = ({ children }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    console.error('useAuth must be used within an AuthProvider');
-    // Return a fallback auth object
+  
+  // This will help identify where the issue is
+  if (context === undefined) {
+    console.error('❌ useAuth must be used within an AuthProvider');
+    console.trace('Stack trace for useAuth error');
+    
+    // Return safe fallback to prevent crashes
     return {
       user: null,
       isAuthenticated: false,
-      login: async () => { throw new Error('Auth not initialized'); },
-      register: async () => { throw new Error('Auth not initialized'); },
-      logout: () => {},
-      updateUser: () => {},
+      login: async () => { 
+        console.error('AuthProvider not available');
+        throw new Error('Authentication not available');
+      },
+      register: async () => { 
+        console.error('AuthProvider not available');
+        throw new Error('Authentication not available');
+      },
+      logout: () => {
+        console.error('AuthProvider not available');
+      },
+      updateUser: () => {
+        console.error('AuthProvider not available');
+      },
+      loading: false,
       userInfo: null
     };
   }
+  
   return context;
 };

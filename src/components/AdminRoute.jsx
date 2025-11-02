@@ -1,21 +1,51 @@
 // components/AdminRoute.jsx
 import { useAuth } from '../context/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const AdminRoute = ({ children }) => {
-  const { user } = useAuth();
+  const { isAuthenticated, user, loading } = useAuth();
 
-  console.log('AdminRoute - User:', user); // Debug log
-  console.log('AdminRoute - isAdmin:', user?.isAdmin); // Debug log
+  useEffect(() => {
+    if (!loading) {
+      if (!isAuthenticated) {
+        console.log('🔒 AdminRoute: User not authenticated, redirecting to login');
+        window.location.href = '/login';
+        return;
+      }
+      
+      if (!user?.isAdmin) {
+        console.log('🚫 AdminRoute: User not admin, redirecting to home');
+        console.log('👤 User details:', { 
+          id: user?.id, 
+          name: user?.name, 
+          isAdmin: user?.isAdmin 
+        });
+        window.location.href = '/';
+        return;
+      }
+      
+      console.log('✅ AdminRoute: User is admin, allowing access');
+    }
+  }, [isAuthenticated, user, loading]);
 
-  // Check if user is authenticated and is admin
-  if (!user) {
-    return <Navigate to="/login" replace />;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <span className="ml-4 text-gray-600">Checking permissions...</span>
+      </div>
+    );
   }
 
-  // Fix: Use isAdmin (capital A) and check for boolean true
-  if (user.isAdmin !== true) {
-    return <Navigate to="/" replace />;
+  if (!isAuthenticated || !user?.isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting...</p>
+        </div>
+      </div>
+    );
   }
 
   return children;
