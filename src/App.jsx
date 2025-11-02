@@ -20,6 +20,7 @@ import AdminDashboard from "./components/AdminDashboard";
 import AdminUsers from "./components/AdminUsers";
 import AdminProperties from "./components/AdminProperties";
 import AdminClickAnalytics from "./components/AdminClickAnalytics";
+import DebugErrorBoundary from "./components/DebugErrorBoundary";
 
 export default function App() {
   return (
@@ -60,7 +61,9 @@ export default function App() {
                 path="/admin"
                 element={
                   <AdminRoute>
+                     <DebugErrorBoundary>
                     <AdminDashboard />
+                       </DebugErrorBoundary>
                   </AdminRoute>
                 }
               />
