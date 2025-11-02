@@ -4,7 +4,6 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [tailwindcss(), react()],
-  // REMOVE the server proxy - Vercel will handle this
   build: {
     outDir: 'dist',
     sourcemap: false

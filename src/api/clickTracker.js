@@ -1,29 +1,34 @@
 import axios from "axios";
 
-// Use environment variable or fallback to Render URL
-const base = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") || "https://saimr-backend-1.onrender.com";
-const PUBLIC_API_URL = `${base}/api`;
+// Use relative paths in production, full URL in development
+const isDevelopment = import.meta.env.DEV;
+const baseURL = isDevelopment 
+  ? 'https://saimr-backend-1.onrender.com/api'
+  : '/api'; // Relative path in production
 
 // Public API for click tracking (no authentication required)
 const PublicAPI = axios.create({
-  baseURL: PUBLIC_API_URL,
+  baseURL,
   timeout: 10000,
 });
 
 // Add request interceptor to log all outgoing requests
 PublicAPI.interceptors.request.use((config) => {
-  console.log('📤 Public API Request:', {
-    url: config.url,
-    method: config.method,
-    data: config.data
-  });
+  if (isDevelopment) {
+    console.log('📤 Public API Request:', {
+      url: config.url,
+      method: config.method,
+    });
+  }
   return config;
 });
 
 // Add response interceptor for debugging
 PublicAPI.interceptors.response.use(
   (response) => {
-    console.log('✅ Public API Response:', response.config.url, response.status, response.data);
+    if (isDevelopment) {
+      console.log('✅ Public API Response:', response.config.url, response.status);
+    }
     return response;
   },
   (error) => {
@@ -31,7 +36,6 @@ PublicAPI.interceptors.response.use(
       url: error.config?.url,
       status: error.response?.status,
       message: error.message,
-      data: error.response?.data
     });
     return Promise.reject(error);
   }
@@ -66,16 +70,20 @@ export const trackClickPublic = async (clickData) => {
       userAgent: navigator.userAgent
     };
 
-    console.log('📤 Tracking click with user data:', {
-      ...trackingData,
-      hasUser: !!user,
-      userId: user?.id,
-      userName: user?.name
-    });
+    if (isDevelopment) {
+      console.log('📤 Tracking click with user data:', {
+        ...trackingData,
+        hasUser: !!user,
+        userId: user?.id,
+        userName: user?.name
+      });
+    }
 
     const response = await PublicAPI.post("/clicks/track", trackingData);
     
-    console.log('✅ Click tracked successfully:', response.data);
+    if (isDevelopment) {
+      console.log('✅ Click tracked successfully:', response.data);
+    }
     return response.data;
   } catch (error) {
     console.warn('⚠️ Click tracking failed:', error.message);
@@ -91,8 +99,6 @@ export const trackClickPublic = async (clickData) => {
 // Legacy function for components that don't need user data
 export const trackClickAnonymous = async (clickData) => {
   try {
-    console.log('📊 Tracking click (anonymous):', clickData);
-    
     const response = await PublicAPI.post("/clicks/track", {
       ...clickData,
       pageUrl: window.location.href,
@@ -100,7 +106,6 @@ export const trackClickAnonymous = async (clickData) => {
       userAgent: navigator.userAgent
     });
     
-    console.log('✅ Click tracked successfully:', response.data);
     return response.data;
   } catch (error) {
     console.warn('⚠️ Click tracking failed:', error.message);

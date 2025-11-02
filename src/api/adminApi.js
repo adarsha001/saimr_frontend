@@ -1,12 +1,14 @@
-// api/adminApi.js
 import axios from 'axios';
 
-const base = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") || "https://saimr-backend-1.onrender.com";
-const ADMIN_BASE_URL = `${base}/api/admin`;
+// Use relative paths in production, full URL in development
+const isDevelopment = import.meta.env.DEV;
+const baseURL = isDevelopment 
+  ? 'https://saimr-backend-1.onrender.com/api/admin'
+  : '/api/admin'; // Relative path in production
 
 const API = axios.create({
-  baseURL: ADMIN_BASE_URL,
-  timeout: 15000, // Reduced timeout
+  baseURL,
+  timeout: 15000,
   withCredentials: true,
 });
 
@@ -15,35 +17,32 @@ API.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
-  } else {
-    console.warn('⚠️ No auth token found');
   }
   
-  // Ensure CORS headers
   config.headers['Content-Type'] = 'application/json';
   
-  console.log(`🔐 Admin API: ${config.method?.toUpperCase()} ${config.url}`);
+  if (isDevelopment) {
+    console.log(`🔐 Admin API: ${config.method?.toUpperCase()} ${config.url}`);
+  }
+  
   return config;
 });
 
 // Enhanced response interceptor
 API.interceptors.response.use(
   (response) => {
-    console.log(`✅ Admin API Success: ${response.status} ${response.config.url}`);
+    if (isDevelopment) {
+      console.log(`✅ Admin API Success: ${response.status} ${response.config.url}`);
+    }
     return response;
   },
   (error) => {
-    const errorDetails = {
+    console.error('❌ Admin API Error:', {
       url: error.config?.url,
-      method: error.config?.method,
       status: error.response?.status,
       message: error.message,
-      code: error.code
-    };
-    
-    console.error('❌ Admin API Error:', errorDetails);
+    });
 
-    // Handle specific error cases
     if (error.code === 'ECONNABORTED') {
       throw new Error('Request timeout. Please try again.');
     }
@@ -63,7 +62,6 @@ API.interceptors.response.use(
       throw new Error('Cannot connect to server. Please check your internet connection.');
     }
 
-    // Backend is up but returned error
     const backendError = error.response.data?.message || error.response.data?.error;
     if (backendError) {
       throw new Error(backendError);
@@ -89,7 +87,6 @@ const fetchWithRetry = async (apiCall, retries = 2) => {
 
 // Update your API calls to use retry for critical ones
 export const fetchAllProperties = (params = {}) => {
-  console.log('📡 Fetching properties with params:', params);
   return fetchWithRetry(() => API.get("/properties/all", { params }));
 };
 
@@ -103,24 +100,20 @@ export const fetchClickAnalytics = (timeframe = '7d', type, propertyId) => {
   if (type) params.type = type;
   if (propertyId) params.propertyId = propertyId;
   
-  console.log('📊 Fetching click analytics with params:', params);
   return fetchWithRetry(() => API.get("/analytics/clicks", { params }));
 };
 
 export const fetchClickStatsByType = (timeframe = '30d') => {
-  console.log('📈 Fetching click stats by type for timeframe:', timeframe);
   return fetchWithRetry(() => API.get("/analytics/clicks/by-type", { params: { timeframe } }));
 };
 
 export const fetchPopularClicks = (timeframe = '7d', limit = 10) => {
-  console.log('🏆 Fetching popular clicks:', { timeframe, limit });
   return fetchWithRetry(() => API.get("/analytics/clicks/popular", { 
     params: { timeframe, limit: parseInt(limit) } 
   }));
 };
 
 export const fetchClickTrends = (timeframe = '30d', groupBy = 'day') => {
-  console.log('📅 Fetching click trends:', { timeframe, groupBy });
   return fetchWithRetry(() => API.get("/analytics/clicks/trends", { 
     params: { timeframe, groupBy } 
   }));
@@ -132,7 +125,6 @@ export const fetchUserAnalytics = async (timeframe = '30d', userId = null) => {
     const params = { timeframe };
     if (userId) params.userId = userId;
     
-    console.log('👤 Fetching user analytics:', params);
     const response = await fetchWithRetry(() => API.get("/analytics/users", { params }));
     return response.data;
   } catch (error) {
@@ -182,8 +174,6 @@ export const trackClick = async (clickData) => {
 
 export const exportClickData = async (format = 'json', timeframe = '30d') => {
   try {
-    console.log('📥 Exporting click data:', { format, timeframe });
-    
     const response = await fetchWithRetry(() => API.get("/analytics/clicks/export", {
       params: { format, timeframe },
       responseType: format === 'csv' ? 'blob' : 'json'
@@ -221,24 +211,9 @@ export const exportClickData = async (format = 'json', timeframe = '30d') => {
 
 export const fetchHourlyDistribution = async (timeframe = '7d', groupBy = 'hour') => {
   try {
-    console.log('🕒 Fetching hourly distribution for timeframe:', timeframe);
-    
     const response = await fetchWithRetry(() => API.get("/analytics/clicks/hourly", { 
       params: { timeframe, groupBy } 
     }));
-    
-    console.log('✅ Hourly distribution API response:', response.data);
-    
-    if (response.data.success && response.data.data) {
-      console.log('📊 Detailed data structure:');
-      console.log('- Hourly distribution array length:', response.data.data.hourlyDistribution?.length);
-      console.log('- First hour data:', response.data.data.hourlyDistribution?.[0]);
-      console.log('- Summary:', response.data.data.summary);
-      console.log('- Total clicks:', response.data.data.summary?.totalClicks);
-      
-      const activeHours = response.data.data.hourlyDistribution?.filter(hour => hour.clicks > 0);
-      console.log('- Active hours:', activeHours);
-    }
     
     return response.data;
     

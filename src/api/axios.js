@@ -1,11 +1,14 @@
-// api/axios.js
 import axios from 'axios';
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://saimr-backend-1.onrender.com';
+// Use relative paths in production, full URL in development
+const isDevelopment = import.meta.env.DEV;
+const baseURL = isDevelopment 
+  ? 'https://saimr-backend-1.onrender.com/api'
+  : '/api'; // Relative path in production - Vercel will proxy this
 
 const API = axios.create({
-  baseURL: `${baseURL}/api`,
-  timeout: 15000, // Reduced timeout from 30s to 15s
+  baseURL,
+  timeout: 15000,
   withCredentials: true,
 });
 
@@ -17,10 +20,13 @@ API.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // Add CORS headers
     config.headers['Content-Type'] = 'application/json';
     
-    console.log(`🚀 ${config.method?.toUpperCase()} ${config.url}`);
+    // Log only in development to avoid console noise in production
+    if (isDevelopment) {
+      console.log(`🚀 ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+    }
+    
     return config;
   },
   (error) => {
@@ -32,7 +38,9 @@ API.interceptors.request.use(
 // Response interceptor
 API.interceptors.response.use(
   (response) => {
-    console.log(`✅ ${response.status} ${response.config.url}`);
+    if (isDevelopment) {
+      console.log(`✅ ${response.status} ${response.config.url}`);
+    }
     return response;
   },
   (error) => {
@@ -43,26 +51,21 @@ API.interceptors.response.use(
       code: error.code
     });
 
-    // Handle specific error cases
     if (error.code === 'ECONNABORTED') {
-      console.error('⏰ Request timeout');
       throw new Error('Request timeout. Please check your connection.');
     }
 
     if (error.response?.status === 401) {
-      console.log('🔒 Unauthorized - clearing auth data');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      // Don't redirect here to avoid loops, handle in components
+      // Don't redirect here to avoid loops
     }
 
     if (error.response?.status === 403) {
-      console.log('🚫 Forbidden access');
       throw new Error('You do not have permission to access this resource.');
     }
 
     if (!error.response) {
-      console.log('🌐 Network error - backend may be down');
       throw new Error('Network error. Please check your connection and try again.');
     }
 
@@ -70,8 +73,7 @@ API.interceptors.response.use(
   }
 );
 
-export default API;
-
+// API functions
 export const getProperties = () => API.get("/properties");
 export const getPropertyById = (id) => API.get(`/properties/${id}`);
 export const createProperty = (formData) => API.post("/properties", formData, {
@@ -86,3 +88,5 @@ export const unlikeProperty = (propertyId) => API.delete(`/users/like/${property
 export const checkIfLiked = (propertyId) => API.get(`/users/like/${propertyId}/check`);
 export const toggleLike = (propertyId) => API.post(`/users/like/${propertyId}/toggle`);
 export const getAllProperties = () => API.get("/properties");
+
+export default API;

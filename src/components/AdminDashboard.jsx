@@ -1,13 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { fetchPendingProperties } from "../api/adminApi";
-import AdminPropertyTable from "../components/AdminPropertyTable";
-import AdminUsers from "./AdminUsers";
 import AdminProperties from "./AdminProperties";
+import AdminUsers from "./AdminUsers";
 import PropertyEdit from "./PropertyEdit";
 import AdminClickAnalytics from "./AdminClickAnalytics";
 import ClickAnalyticsDetails from "./ClickAnalyticsDetails";
 import { useAuth } from "../context/AuthContext";
-import LoadingSpinner from "./LoadingSpinner";
+
+// Inline LoadingSpinner component
+const LoadingSpinner = ({ message = "Loading..." }) => {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">{message}</p>
+      </div>
+    </div>
+  );
+};
 
 const AdminDashboard = () => {
   const [properties, setProperties] = useState([]);
@@ -22,38 +32,18 @@ const AdminDashboard = () => {
 
   // Safe check for auth
   useEffect(() => {
-    console.log('🔐 AdminDashboard auth state:', {
-      authLoading,
-      isAuthenticated,
-      user: user ? { id: user.id, name: user.name, isAdmin: user.isAdmin } : null
-    });
-  }, [authLoading, isAuthenticated, user]);
-
-  // Show loading while auth is being checked
-  if (authLoading) {
-    return <LoadingSpinner message="Checking admin permissions..." />;
-  }
-
-  // Safe redirect if not authenticated or not admin
-  if (!isAuthenticated) {
-    console.log('🔒 Not authenticated, redirecting to login');
-    window.location.href = '/login';
-    return null;
-  }
-
-  if (!user?.isAdmin) {
-    console.log('🚫 Not admin, redirecting to home');
-    window.location.href = '/';
-    return null;
-  }
-  // Redirect if not admin
-  useEffect(() => {
-    if (!isAuthenticated || !user?.isAdmin) {
-      console.log('🚫 Unauthorized access to admin dashboard');
+    if (!authLoading && !isAuthenticated) {
+      console.log('🔒 Not authenticated, redirecting to login');
       window.location.href = '/login';
       return;
     }
-  }, [isAuthenticated, user]);
+    
+    if (!authLoading && isAuthenticated && !user?.isAdmin) {
+      console.log('🚫 Not admin, redirecting to home');
+      window.location.href = '/';
+      return;
+    }
+  }, [authLoading, isAuthenticated, user]);
 
   const getProperties = async () => {
     setLoading(true);
@@ -92,6 +82,16 @@ const AdminDashboard = () => {
     }
   };
 
+  // Show loading while auth is being checked
+  if (authLoading) {
+    return <LoadingSpinner message="Checking admin permissions..." />;
+  }
+
+  // Don't render if not authenticated or not admin
+  if (!isAuthenticated || !user?.isAdmin) {
+    return null;
+  }
+
   // Render error state
   const renderErrorState = () => (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -106,9 +106,6 @@ const AdminDashboard = () => {
           >
             Retry Connection
           </button>
-          <p className="text-sm text-gray-500 mt-4">
-            If this persists, check your internet connection or contact support.
-          </p>
         </div>
       </div>
     </div>
@@ -127,7 +124,6 @@ const AdminDashboard = () => {
       case "analytics":
         return (
           <div className="p-4 sm:p-6">
-            {/* Analytics View Toggle */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
               <div className="text-center sm:text-left">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
@@ -149,10 +145,7 @@ const AdminDashboard = () => {
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                  <span className="hidden xs:inline">Overview</span>
+                  <span>Overview</span>
                 </button>
                 <button
                   onClick={() => setAnalyticsView("details")}
@@ -162,22 +155,22 @@ const AdminDashboard = () => {
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="hidden xs:inline">Detailed View</span>
+                  <span>Detailed View</span>
                 </button>
               </div>
             </div>
             
-            {/* Render the appropriate analytics component */}
             {analyticsView === "overview" ? <AdminClickAnalytics /> : <ClickAnalyticsDetails />}
           </div>
         );
       case "edit":
         return <PropertyEdit />;
       default:
-        return null;
+        return (
+          <div className="p-8 text-center">
+            <h2 className="text-xl font-bold text-gray-700">Select a section to get started</h2>
+          </div>
+        );
     }
   };
 
@@ -238,9 +231,6 @@ const AdminDashboard = () => {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
               <span>Properties</span>
             </button>
 
@@ -256,13 +246,9 @@ const AdminDashboard = () => {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-              </svg>
               <span>Users</span>
             </button>
 
-            {/* Analytics Button */}
             <button
               onClick={() => {
                 setActiveSection("analytics");
@@ -274,27 +260,8 @@ const AdminDashboard = () => {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
               <span>Click Analytics</span>
             </button>
-
-            {/* Optional: Quick Stats Overview */}
-            <div className="ml-auto flex items-center space-x-3 sm:space-x-4 text-xs sm:text-sm text-gray-600">
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="hidden lg:inline">Properties</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                <span className="hidden lg:inline">Users</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="hidden lg:inline">Analytics</span>
-              </div>
-            </div>
           </div>
 
           {/* Mobile Navigation */}
@@ -313,9 +280,6 @@ const AdminDashboard = () => {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
                 <span>Properties</span>
               </button>
 
@@ -332,9 +296,6 @@ const AdminDashboard = () => {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                </svg>
                 <span>Users</span>
               </button>
 
@@ -350,44 +311,9 @@ const AdminDashboard = () => {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
                 <span>Click Analytics</span>
               </button>
             </div>
-          </div>
-
-          {/* Mobile Quick Stats */}
-          <div className="sm:hidden flex justify-center space-x-4 mt-3 text-xs text-gray-600">
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span>Properties</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              <span>Users</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span>Analytics</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Section Indicator */}
-        <div className="mb-3 sm:mb-4">
-          <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
-            <span>Admin</span>
-            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            <span className="font-medium text-gray-900 capitalize">
-              {activeSection === "analytics" 
-                ? `Analytics ${analyticsView === "details" ? "- Details" : "- Overview"}` 
-                : activeSection
-              }
-            </span>
           </div>
         </div>
 
