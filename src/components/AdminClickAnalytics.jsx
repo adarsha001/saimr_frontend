@@ -207,16 +207,20 @@ const AdminClickAnalytics = () => {
     return user?.userId || user?.id || 'Anonymous';
   };
 
-  // Get unique key for user - FIXED to handle anonymous users
-  const getUserKey = (user, index) => {
-    const userId = getUserId(user);
-    if (userId === 'Anonymous') {
-      // For anonymous users, create a unique key using session or other data
-      return `anonymous-${user.sessionId || user.ipAddress || index}`;
-    }
-    return userId;
-  };
-
+// Get unique key for user - handles anonymous users properly
+const getUserKey = (user, index) => {
+  // For logged-in users, use their actual ID
+  if (user?.userId || user?.id) {
+    return user.userId || user.id;
+  }
+  
+  // For anonymous users, create a unique key using sessionId + timestamp
+  // This ensures each anonymous session has a unique key
+  const sessionPart = user?.sessionId ? user.sessionId.substring(0, 8) : 'no-session';
+  const timestampPart = user?.timestamp ? new Date(user.timestamp).getTime() : index;
+  
+  return `anonymous-${sessionPart}-${timestampPart}`;
+};
   const handleExport = async (format) => {
     try {
       setExportLoading(true);
@@ -917,7 +921,7 @@ const AdminClickAnalytics = () => {
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {userEngagement.map((user, index) => (
-                          <tr key={getUserKey(user, index)} className="hover:bg-gray-50 transition-colors">
+                          <tr  key={user?.userId || user?.id || `user-${index}`} className="hover:bg-gray-50 transition-colors">
                             <td className="px-4 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
