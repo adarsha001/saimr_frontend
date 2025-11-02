@@ -1,33 +1,71 @@
-import axios from "axios";
+// api/axios.js
+import axios from 'axios';
 
-// Use environment variable or fallback to Render URL
-const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api` || "https://saimr-backend-1.onrender.com/api";
-;
+const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://saimr-backend-1.onrender.com';
 
 const API = axios.create({
-  baseURL: BASE_URL,
-  timeout: 30000, // Increase timeout for file uploads
+  baseURL: `${baseURL}/api`,
+  timeout: 15000, // Reduced timeout from 30s to 15s
+  withCredentials: true,
 });
 
-// Add token to requests
-API.interceptors.request.use((req) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    req.headers.Authorization = `Bearer ${token}`;
-  }
-  return req;
-});
-
-// Response interceptor for better error handling
-API.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('API Error:', error);
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = '/login';
+// Request interceptor
+API.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Add CORS headers
+    config.headers['Content-Type'] = 'application/json';
+    
+    console.log(`🚀 ${config.method?.toUpperCase()} ${config.url}`);
+    return config;
+  },
+  (error) => {
+    console.error('❌ Request error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor
+API.interceptors.response.use(
+  (response) => {
+    console.log(`✅ ${response.status} ${response.config.url}`);
+    return response;
+  },
+  (error) => {
+    console.error('❌ Response error:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      message: error.message,
+      code: error.code
+    });
+
+    // Handle specific error cases
+    if (error.code === 'ECONNABORTED') {
+      console.error('⏰ Request timeout');
+      throw new Error('Request timeout. Please check your connection.');
+    }
+
+    if (error.response?.status === 401) {
+      console.log('🔒 Unauthorized - clearing auth data');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      // Don't redirect here to avoid loops, handle in components
+    }
+
+    if (error.response?.status === 403) {
+      console.log('🚫 Forbidden access');
+      throw new Error('You do not have permission to access this resource.');
+    }
+
+    if (!error.response) {
+      console.log('🌐 Network error - backend may be down');
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+
     return Promise.reject(error);
   }
 );

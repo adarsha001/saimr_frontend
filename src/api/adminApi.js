@@ -1,45 +1,101 @@
-import axios from "axios";
+// api/adminApi.js
+import axios from 'axios';
 
-// Use environment variable or fallback to Render URL
 const base = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") || "https://saimr-backend-1.onrender.com";
 const ADMIN_BASE_URL = `${base}/api/admin`;
 
 const API = axios.create({
   baseURL: ADMIN_BASE_URL,
-  timeout: 30000,
+  timeout: 15000, // Reduced timeout
+  withCredentials: true,
 });
 
-// Add token automatically
+// Enhanced request interceptor
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   if (token) {
-    console.log('🔑 Adding token to admin request');
     config.headers.Authorization = `Bearer ${token}`;
   } else {
-    console.log('❌ No token found in localStorage');
+    console.warn('⚠️ No auth token found');
   }
+  
+  // Ensure CORS headers
+  config.headers['Content-Type'] = 'application/json';
+  
+  console.log(`🔐 Admin API: ${config.method?.toUpperCase()} ${config.url}`);
   return config;
 });
 
-// Add response interceptor for debugging
+// Enhanced response interceptor
 API.interceptors.response.use(
   (response) => {
-    console.log('✅ Admin API Response:', response.config.url, response.status);
+    console.log(`✅ Admin API Success: ${response.status} ${response.config.url}`);
     return response;
   },
   (error) => {
-    console.error('❌ Admin API Error:', error.config?.url, error.response?.status, error.message);
+    const errorDetails = {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      message: error.message,
+      code: error.code
+    };
     
-    // Handle unauthorized access
+    console.error('❌ Admin API Error:', errorDetails);
+
+    // Handle specific error cases
+    if (error.code === 'ECONNABORTED') {
+      throw new Error('Request timeout. Please try again.');
+    }
+
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
+      throw new Error('Session expired. Please login again.');
     }
-    
-    return Promise.reject(error);
+
+    if (error.response?.status === 403) {
+      throw new Error('Access denied. Admin privileges required.');
+    }
+
+    if (!error.response) {
+      throw new Error('Cannot connect to server. Please check your internet connection.');
+    }
+
+    // Backend is up but returned error
+    const backendError = error.response.data?.message || error.response.data?.error;
+    if (backendError) {
+      throw new Error(backendError);
+    }
+
+    throw error;
   }
 );
+
+// Add retry mechanism for critical requests
+const fetchWithRetry = async (apiCall, retries = 2) => {
+  try {
+    return await apiCall();
+  } catch (error) {
+    if (retries > 0 && (error.code === 'ECONNABORTED' || !error.response)) {
+      console.log(`🔄 Retrying request... ${retries} attempts left`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return fetchWithRetry(apiCall, retries - 1);
+    }
+    throw error;
+  }
+};
+
+// Update your API calls to use retry for critical ones
+export const fetchAllProperties = (params = {}) => {
+  console.log('📡 Fetching properties with params:', params);
+  return fetchWithRetry(() => API.get("/properties/all", { params }));
+};
+
+export const fetchPendingProperties = () => {
+  return fetchWithRetry(() => API.get("/properties/pending"));
+};
 
 // Click Analytics Endpoints
 export const fetchClickAnalytics = (timeframe = '7d', type, propertyId) => {
@@ -48,26 +104,26 @@ export const fetchClickAnalytics = (timeframe = '7d', type, propertyId) => {
   if (propertyId) params.propertyId = propertyId;
   
   console.log('📊 Fetching click analytics with params:', params);
-  return API.get("/analytics/clicks", { params });
+  return fetchWithRetry(() => API.get("/analytics/clicks", { params }));
 };
 
 export const fetchClickStatsByType = (timeframe = '30d') => {
   console.log('📈 Fetching click stats by type for timeframe:', timeframe);
-  return API.get("/analytics/clicks/by-type", { params: { timeframe } });
+  return fetchWithRetry(() => API.get("/analytics/clicks/by-type", { params: { timeframe } }));
 };
 
 export const fetchPopularClicks = (timeframe = '7d', limit = 10) => {
   console.log('🏆 Fetching popular clicks:', { timeframe, limit });
-  return API.get("/analytics/clicks/popular", { 
+  return fetchWithRetry(() => API.get("/analytics/clicks/popular", { 
     params: { timeframe, limit: parseInt(limit) } 
-  });
+  }));
 };
 
 export const fetchClickTrends = (timeframe = '30d', groupBy = 'day') => {
   console.log('📅 Fetching click trends:', { timeframe, groupBy });
-  return API.get("/analytics/clicks/trends", { 
+  return fetchWithRetry(() => API.get("/analytics/clicks/trends", { 
     params: { timeframe, groupBy } 
-  });
+  }));
 };
 
 // User Analytics Endpoints
@@ -77,7 +133,7 @@ export const fetchUserAnalytics = async (timeframe = '30d', userId = null) => {
     if (userId) params.userId = userId;
     
     console.log('👤 Fetching user analytics:', params);
-    const response = await API.get("/analytics/users", { params });
+    const response = await fetchWithRetry(() => API.get("/analytics/users", { params }));
     return response.data;
   } catch (error) {
     throw error;
@@ -86,9 +142,9 @@ export const fetchUserAnalytics = async (timeframe = '30d', userId = null) => {
 
 export const fetchCompleteAnalytics = async (timeframe = '7d', includeRawData = false) => {
   try {
-    const response = await API.get("/analytics/clicks", { 
+    const response = await fetchWithRetry(() => API.get("/analytics/clicks", { 
       params: { timeframe, includeRawData, limit: 500 } 
-    });
+    }));
     return response.data;
   } catch (error) {
     throw error;
@@ -97,7 +153,7 @@ export const fetchCompleteAnalytics = async (timeframe = '7d', includeRawData = 
 
 export const fetchRawClickData = async (params = {}) => {
   try {
-    const response = await API.get("/analytics/clicks/raw", { params });
+    const response = await fetchWithRetry(() => API.get("/analytics/clicks/raw", { params }));
     return response.data;
   } catch (error) {
     throw error;
@@ -106,9 +162,9 @@ export const fetchRawClickData = async (params = {}) => {
 
 export const fetchUserSessions = async (timeframe = '7d', limit = 50) => {
   try {
-    const response = await API.get("/analytics/clicks/sessions", { 
+    const response = await fetchWithRetry(() => API.get("/analytics/clicks/sessions", { 
       params: { timeframe, limit } 
-    });
+    }));
     return response.data;
   } catch (error) {
     throw error;
@@ -128,10 +184,10 @@ export const exportClickData = async (format = 'json', timeframe = '30d') => {
   try {
     console.log('📥 Exporting click data:', { format, timeframe });
     
-    const response = await API.get("/analytics/clicks/export", {
+    const response = await fetchWithRetry(() => API.get("/analytics/clicks/export", {
       params: { format, timeframe },
       responseType: format === 'csv' ? 'blob' : 'json'
-    });
+    }));
 
     if (format === 'csv') {
       const blob = new Blob([response.data], { type: 'text/csv' });
@@ -167,9 +223,9 @@ export const fetchHourlyDistribution = async (timeframe = '7d', groupBy = 'hour'
   try {
     console.log('🕒 Fetching hourly distribution for timeframe:', timeframe);
     
-    const response = await API.get("/analytics/clicks/hourly", { 
+    const response = await fetchWithRetry(() => API.get("/analytics/clicks/hourly", { 
       params: { timeframe, groupBy } 
-    });
+    }));
     
     console.log('✅ Hourly distribution API response:', response.data);
     
@@ -196,21 +252,15 @@ export const fetchHourlyDistribution = async (timeframe = '7d', groupBy = 'hour'
 export const testConnection = () => API.get("/test");
 
 // Property Management
-export const fetchPendingProperties = () => API.get("/properties/pending");
-export const fetchPropertiesByStatus = (status) => API.get(`/properties?status=${status}`);
+export const fetchPropertiesByStatus = (status) => fetchWithRetry(() => API.get(`/properties?status=${status}`));
 export const approveProperty = (id) => API.put(`/properties/approve/${id}`);
 export const rejectProperty = (id, reason) => API.put(`/properties/reject/${id}`, { reason });
 export const toggleFeatured = (id) => API.put(`/properties/feature/${id}`);
 export const fetchAllUsers = (page = 1, limit = 10, search = '') => 
-  API.get(`/users?page=${page}&limit=${limit}&search=${search}`);
-export const fetchUserById = (id) => API.get(`/users/${id}`);
+  fetchWithRetry(() => API.get(`/users?page=${page}&limit=${limit}&search=${search}`));
+export const fetchUserById = (id) => fetchWithRetry(() => API.get(`/users/${id}`));
 
 // Property Management
-export const fetchAllProperties = (params = {}) => {
-  console.log('📡 Fetching all properties with params:', params);
-  return API.get("/properties/all", { params });
-};
-
 export const updatePropertyOrder = (id, data) => 
   API.put(`/properties/order/${id}`, data);
 
@@ -218,7 +268,7 @@ export const bulkUpdateProperties = (data) =>
   API.put("/properties/bulk-update", data);
 
 export const fetchPropertyStats = () => 
-  API.get("/properties/stats");
+  fetchWithRetry(() => API.get("/properties/stats"));
 
 export const updateProperty = (id, data) => API.put(`/properties/${id}`, data);
 export const patchProperty = (id, data) => API.patch(`/properties/${id}`, data);

@@ -1,21 +1,39 @@
-// components/ProtectedRoute.js
-import { Navigate } from 'react-router-dom';
+// components/ProtectedRoute.jsx
 import { useAuth } from '../context/AuthContext';
+import { useEffect } from 'react';
 
-export default function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
-  
-  // Show loading while checking authentication
+const ProtectedRoute = ({ children, requireAdmin = true }) => {
+  const { isAuthenticated, user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      window.location.href = '/login';
+      return;
+    }
+
+    if (!loading && isAuthenticated && requireAdmin && !user?.isAdmin) {
+      window.location.href = '/';
+      return;
+    }
+  }, [isAuthenticated, user, loading, requireAdmin]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
-  
-  return user ? children : <Navigate to="/login" />;
-}
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  if (requireAdmin && !user?.isAdmin) {
+    return null;
+  }
+
+  return children;
+};
+
+export default ProtectedRoute;

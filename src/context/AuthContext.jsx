@@ -1,3 +1,4 @@
+// context/AuthContext.js
 import { createContext, useContext, useState, useEffect } from 'react';
 import API from '../api/axios';
 
@@ -15,6 +16,8 @@ export const AuthProvider = ({ children }) => {
     }
   });
 
+  const [loading, setLoading] = useState(true);
+
   console.log('🔐 Current auth state:', { user, hasUser: !!user });
 
   // Initialize session ID on app start
@@ -29,6 +32,7 @@ export const AuthProvider = ({ children }) => {
     };
     
     initializeSession();
+    setLoading(false);
   }, []);
 
   const login = async (emailOrUsername, password) => {
@@ -124,6 +128,14 @@ export const AuthProvider = ({ children }) => {
     } : null
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <AuthContext.Provider value={value}>
       {children}
@@ -134,7 +146,17 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    console.error('useAuth must be used within an AuthProvider');
+    // Return a fallback auth object
+    return {
+      user: null,
+      isAuthenticated: false,
+      login: async () => { throw new Error('Auth not initialized'); },
+      register: async () => { throw new Error('Auth not initialized'); },
+      logout: () => {},
+      updateUser: () => {},
+      userInfo: null
+    };
   }
   return context;
 };

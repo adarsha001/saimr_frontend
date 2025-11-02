@@ -1,3 +1,4 @@
+// components/AdminDashboard.js
 import React, { useEffect, useState } from "react";
 import { fetchPendingProperties } from "../api/adminApi";
 import AdminPropertyTable from "../components/AdminPropertyTable";
@@ -6,22 +7,37 @@ import AdminProperties from "./AdminProperties";
 import PropertyEdit from "./PropertyEdit";
 import AdminClickAnalytics from "./AdminClickAnalytics";
 import ClickAnalyticsDetails from "./ClickAnalyticsDetails";
+import { useAuth } from "../context/AuthContext";
 
 const AdminDashboard = () => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeSection, setActiveSection] = useState("properties");
   const [editingProperty, setEditingProperty] = useState(null);
   const [analyticsView, setAnalyticsView] = useState("overview"); // "overview" or "details"
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  const { user, isAuthenticated } = useAuth();
+
+  // Redirect if not admin
+  useEffect(() => {
+    if (!isAuthenticated || !user?.isAdmin) {
+      console.log('🚫 Unauthorized access to admin dashboard');
+      window.location.href = '/login';
+      return;
+    }
+  }, [isAuthenticated, user]);
 
   const getProperties = async () => {
     setLoading(true);
+    setError(null);
     try {
       const { data } = await fetchPendingProperties();
       setProperties(data.properties);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to fetch properties:', err);
+      setError(err.message || 'Failed to load properties');
     } finally {
       setLoading(false);
     }
@@ -44,7 +60,39 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleRetry = () => {
+    if (activeSection === "dashboard") {
+      getProperties();
+    }
+  };
+
+  // Render error state
+  const renderErrorState = () => (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="text-center py-20">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Connection Error</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={handleRetry}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Retry Connection
+          </button>
+          <p className="text-sm text-gray-500 mt-4">
+            If this persists, check your internet connection or contact support.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderActiveSection = () => {
+    if (error && activeSection === "dashboard") {
+      return renderErrorState();
+    }
+
     switch (activeSection) {
       case "properties":
         return <AdminProperties onEditProperty={handleEditProperty} />;
@@ -129,6 +177,11 @@ const AdminDashboard = () => {
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
               <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">Manage your real estate platform</p>
+              {user && (
+                <p className="text-gray-500 text-xs sm:text-sm mt-1">
+                  Welcome, {user.name} ({user.username})
+                </p>
+              )}
             </div>
             
             {/* Mobile Menu Button */}
@@ -151,6 +204,7 @@ const AdminDashboard = () => {
               onClick={() => {
                 setActiveSection("properties");
                 setAnalyticsView("overview");
+                setError(null);
               }}
               className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-all flex items-center space-x-2 text-sm sm:text-base ${
                 activeSection === "properties"
@@ -168,6 +222,7 @@ const AdminDashboard = () => {
               onClick={() => {
                 setActiveSection("users");
                 setAnalyticsView("overview");
+                setError(null);
               }}
               className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-all flex items-center space-x-2 text-sm sm:text-base ${
                 activeSection === "users"
@@ -183,7 +238,10 @@ const AdminDashboard = () => {
 
             {/* Analytics Button */}
             <button
-              onClick={() => setActiveSection("analytics")}
+              onClick={() => {
+                setActiveSection("analytics");
+                setError(null);
+              }}
               className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-all flex items-center space-x-2 text-sm sm:text-base ${
                 activeSection === "analytics"
                   ? "bg-blue-600 text-white shadow-md"
@@ -220,6 +278,7 @@ const AdminDashboard = () => {
                 onClick={() => {
                   setActiveSection("properties");
                   setAnalyticsView("overview");
+                  setError(null);
                   setIsMobileMenuOpen(false);
                 }}
                 className={`px-4 py-3 rounded-lg font-medium transition-all flex items-center space-x-2 justify-center ${
@@ -238,6 +297,7 @@ const AdminDashboard = () => {
                 onClick={() => {
                   setActiveSection("users");
                   setAnalyticsView("overview");
+                  setError(null);
                   setIsMobileMenuOpen(false);
                 }}
                 className={`px-4 py-3 rounded-lg font-medium transition-all flex items-center space-x-2 justify-center ${
@@ -255,6 +315,7 @@ const AdminDashboard = () => {
               <button
                 onClick={() => {
                   setActiveSection("analytics");
+                  setError(null);
                   setIsMobileMenuOpen(false);
                 }}
                 className={`px-4 py-3 rounded-lg font-medium transition-all flex items-center space-x-2 justify-center ${
