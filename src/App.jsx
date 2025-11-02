@@ -61,9 +61,9 @@ export default function App() {
                 path="/admin"
                 element={
                   <AdminRoute>
-                     <DebugErrorBoundary>
+                    
                     <AdminDashboard />
-                       </DebugErrorBoundary>
+                      
                   </AdminRoute>
                 }
               />
