@@ -809,10 +809,10 @@ const AdminProperties = ({ onEditProperty }) => { // Add onEditProperty prop
                 <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
                 <div className="text-sm text-gray-600">Approved</div>
               </div>
-              <div className="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+              {/* <div className="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
                 <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
                 <div className="text-sm text-gray-600">Rejected</div>
-              </div>
+              </div> */}
               <div className="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
                 <div className="text-2xl font-bold text-purple-600">{stats.featured}</div>
                 <div className="text-sm text-gray-600">Featured</div>

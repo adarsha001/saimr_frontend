@@ -39,9 +39,9 @@ export default function QualityAssuranceSection() {
 
     const targets = {
       years: 15,
-      acres: 500,
-      clients: 200,
-      deals: 75,
+      acres: 200,
+      clients: 100,
+      deals: 65,
     };
 
     let step = 0;
@@ -107,15 +107,15 @@ export default function QualityAssuranceSection() {
   return (
     // The main container is relative and sets the height for the entire section
     // Adjusted min-h-screen for potentially less contrast without the overlay
-    <div ref={sectionRef} className="relative w-full min-h-[120vh] md:min-h-[100vh] bg-white overflow-hidden">
+    <div ref={sectionRef} className="relative w-full p-4 min-h-[120vh] md:min-h-[100vh] bg-white overflow-hidden">
       
       {/* 🏙️ Background Image Section - Fixed to the edges */}
       <div className="absolute inset-0 z-0">
         {/* Replace /nemgaluru.png with your actual image path */}
         <img 
-          src="/nemgaluru.png" 
+          src="./image.jpeg" 
           alt="Bangalore city skyline" 
-          className="w-full h-full object-cover" 
+          className="w-full h-full object-fill" 
         />
         {/*
           Removed the gradient overlay div here:

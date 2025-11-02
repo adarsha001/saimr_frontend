@@ -92,17 +92,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-black text-white">
-      {/* Debug button - remove in production */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="container mx-auto px-4 py-2">
-          <button 
-            onClick={debugLocalStorage}
-            className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded"
-          >
-            🔍 Debug LocalStorage
-          </button>
-        </div>
-      )}
+
 
       {/* Main Footer Content */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
