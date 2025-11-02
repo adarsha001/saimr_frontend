@@ -207,6 +207,16 @@ const AdminClickAnalytics = () => {
     return user?.userId || user?.id || 'Anonymous';
   };
 
+  // Get unique key for user - FIXED to handle anonymous users
+  const getUserKey = (user, index) => {
+    const userId = getUserId(user);
+    if (userId === 'Anonymous') {
+      // For anonymous users, create a unique key using session or other data
+      return `anonymous-${user.sessionId || user.ipAddress || index}`;
+    }
+    return userId;
+  };
+
   const handleExport = async (format) => {
     try {
       setExportLoading(true);
@@ -639,12 +649,12 @@ const AdminClickAnalytics = () => {
                 </div>
               </div>
 
-              {/* Top Performing Items */}
+              {/* Top Performing Items - FIXED KEY */}
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Performing Contact Methods</h3>
                 <div className="space-y-3 max-h-80 overflow-y-auto">
                   {topPerformers.map((click, index) => (
-                    <div key={click._id || index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border">
+                    <div key={click._id || `top-performer-${index}`} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border">
                       <div className="flex items-center space-x-3">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${
                           index === 0 ? 'bg-yellow-500' : 
@@ -721,7 +731,7 @@ const AdminClickAnalytics = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {clicksByType.map((stat, index) => (
-                        <tr key={stat._id || index} className="hover:bg-gray-50 transition-colors">
+                        <tr key={stat._id || `type-${index}`} className="hover:bg-gray-50 transition-colors">
                           <td className="px-4 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div 
@@ -789,7 +799,7 @@ const AdminClickAnalytics = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {popularClicks.map((click, index) => (
-                      <tr key={click._id || index} className="hover:bg-gray-50 transition-colors">
+                      <tr key={click._id || `popular-${index}`} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-4 whitespace-nowrap">
                           <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
                             index === 0 ? 'bg-yellow-500' : 
@@ -868,7 +878,7 @@ const AdminClickAnalytics = () => {
                 </div>
               </div>
 
-              {/* User Engagement Table */}
+              {/* User Engagement Table - FIXED KEY */}
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">User Engagement Details</h3>
                 
@@ -907,7 +917,7 @@ const AdminClickAnalytics = () => {
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {userEngagement.map((user, index) => (
-                          <tr key={getUserId(user) || index} className="hover:bg-gray-50 transition-colors">
+                          <tr key={getUserKey(user, index)} className="hover:bg-gray-50 transition-colors">
                             <td className="px-4 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
@@ -957,13 +967,13 @@ const AdminClickAnalytics = () => {
                 )}
               </div>
 
-              {/* Recent User Activity */}
+              {/* Recent User Activity - FIXED KEY (This was the main issue!) */}
               {userEngagement.length > 0 && (
                 <div className="bg-white rounded-xl shadow-sm border p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent User Activity</h3>
                   <div className="space-y-4">
                     {userEngagement.slice(0, 5).map((user, index) => (
-                      <div key={getUserId(user)} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div key={getUserKey(user, index)} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div className="flex items-center space-x-4">
                           <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
                             {getUserInitials(user)}
@@ -1113,7 +1123,7 @@ const AdminClickAnalytics = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Recommendations</h3>
                 <div className="space-y-3">
                   {clicksByType.slice(0, 3).map((type, index) => (
-                    <div key={type.itemType} className="p-3 bg-gray-50 rounded-lg border">
+                    <div key={`recommendation-${type.itemType}-${index}`} className="p-3 bg-gray-50 rounded-lg border">
                       <h4 className="font-semibold text-gray-800 mb-1">
                         {index + 1}. {type.itemType.charAt(0).toUpperCase() + type.itemType.slice(1)}
                       </h4>
@@ -1135,7 +1145,7 @@ const AdminClickAnalytics = () => {
                   )}
                   
                   {popularClicks.slice(0, 2).map((click, index) => (
-                    <div key={click._id} className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div key={click._id || `high-performer-${index}`} className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                       <h4 className="font-semibold text-yellow-800 mb-1">
                         High Performer: {click.displayName}
                       </h4>
