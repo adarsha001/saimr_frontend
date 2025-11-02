@@ -136,26 +136,7 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Remember & Forgot */}
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer group">
-                <input 
-                  type="checkbox" 
-                  className="w-4 h-4 bg-white/5 border border-white/20 rounded-sm"
-                />
-                <span className="text-white/60 group-hover:text-white/80 transition-colors">
-                  Remember me
-                </span>
-              </label>
-              <a 
-                href="#" 
-                className="text-white/60 hover:text-white transition-colors"
-              >
-                Forgot Password?
-              </a>
-            </div>
-
-            {/* Submit Button */}
+       
             <button
               type="submit"
               disabled={isLoading}
@@ -186,6 +167,7 @@ export default function Login() {
             {/* Register Link */}
             <button
               type="button"
+               onClick={() => navigate("/register")}
               className="w-full border border-white/20 text-white py-4 rounded-none hover:bg-white/5 transition-all duration-300 font-medium"
             >
               Create an Account

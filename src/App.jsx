@@ -1,4 +1,3 @@
-// App.js
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import PropertyList from "./pages/PropertyList";
@@ -24,6 +23,9 @@ import AdminClickAnalytics from "./components/AdminClickAnalytics";
 // Enquiry Components
 import EnquiryForm from "./components/EnquiryForm";
 import AdminEnquiries from "./components/AdminEnquiries";
+
+// NotFound Component
+import NotFound from "./components/NotFound";
 
 export default function App() {
   return (
@@ -107,6 +109,9 @@ export default function App() {
                   </AdminRoute>
                 }
               />
+
+              {/* 404 Not Found Route - Catch all undefined routes */}
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </ViewModeProvider>
         </LikesProvider>
