@@ -2,9 +2,8 @@ import axios from "axios";
 
 // Use relative paths in production, full URL in development
 const isDevelopment = import.meta.env.DEV;
-const baseURL = isDevelopment 
-  ? 'https://saimr-backend-1.onrender.com/api'
-  : '/api'; // Relative path in production
+const baseURL = 'https://saimr-backend-1.onrender.com/api'
+  
 
 // Public API for click tracking (no authentication required)
 const PublicAPI = axios.create({
