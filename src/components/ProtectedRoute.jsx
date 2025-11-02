@@ -2,7 +2,7 @@
 import { useAuth } from '../context/AuthContext';
 import { useEffect } from 'react';
 
-const ProtectedRoute = ({ children, requireAdmin = true }) => {
+const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { isAuthenticated, user, loading } = useAuth();
 
   useEffect(() => {

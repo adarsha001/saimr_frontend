@@ -1,3 +1,4 @@
+// context/AuthContext.js
 import { createContext, useContext, useState, useEffect } from 'react';
 import API from '../api/axios';
 
@@ -33,19 +34,7 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
-  // Initialize session ID
-  useEffect(() => {
-    const initializeSession = () => {
-      let sessionId = localStorage.getItem('sessionId');
-      if (!sessionId) {
-        sessionId = 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-        localStorage.setItem('sessionId', sessionId);
-      }
-    };
-    
-    initializeSession();
-  }, []);
-
+  // Rest of your AuthContext code remains the same...
   const login = async (emailOrUsername, password) => {
     try {
       const { data } = await API.post('/auth/login', { emailOrUsername, password });
@@ -124,18 +113,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    console.error('useAuth must be used within an AuthProvider');
-    // Return safe fallback
-    return {
-      user: null,
-      isAuthenticated: false,
-      login: async () => { throw new Error('Auth not available'); },
-      register: async () => { throw new Error('Auth not available'); },
-      logout: () => {},
-      updateUser: () => {},
-      loading: false,
-      userInfo: null
-    };
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

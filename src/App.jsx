@@ -23,7 +23,6 @@ import AdminClickAnalytics from "./components/AdminClickAnalytics";
 
 export default function App() {
   return (
-    // REMOVE DUPLICATE AuthProvider - Only wrap once at the root level
     <BrowserRouter>
       <AuthProvider>
         <LikesProvider>
