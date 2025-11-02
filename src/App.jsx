@@ -21,6 +21,9 @@ import AdminUsers from "./components/AdminUsers";
 import AdminProperties from "./components/AdminProperties";
 import AdminClickAnalytics from "./components/AdminClickAnalytics";
 
+// Enquiry Components
+import EnquiryForm from "./components/EnquiryForm";
+import AdminEnquiries from "./components/AdminEnquiries";
 
 export default function App() {
   return (
@@ -29,6 +32,13 @@ export default function App() {
         <LikesProvider>
           <ViewModeProvider>
             <Navbar />
+            
+            {/* Global Enquiry Form - Shows on all pages except admin */}
+            <Routes>
+              <Route path="/admin/*" element={null} />
+              <Route path="*" element={<EnquiryForm />} />
+            </Routes>
+            
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Home/>} />
@@ -61,9 +71,7 @@ export default function App() {
                 path="/admin"
                 element={
                   <AdminRoute>
-                    
                     <AdminDashboard />
-                      
                   </AdminRoute>
                 }
               />
@@ -88,6 +96,14 @@ export default function App() {
                 element={
                   <AdminRoute>
                     <AdminClickAnalytics />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/enquiries"
+                element={
+                  <AdminRoute>
+                    <AdminEnquiries />
                   </AdminRoute>
                 }
               />

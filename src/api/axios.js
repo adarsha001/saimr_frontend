@@ -88,4 +88,16 @@ export const checkIfLiked = (propertyId) => API.get(`/users/like/${propertyId}/c
 export const toggleLike = (propertyId) => API.post(`/users/like/${propertyId}/toggle`);
 export const getAllProperties = () => API.get("/properties");
 
+
+
+export const createEnquiry = (enquiryData) => API.post("/auth/enquiries", enquiryData);
+
+export const getUserProfile = () => API.get("/users/profile");
+export const getUserEnquiries = () => API.get("/users/my-enquiries");
+export const updateUserProfile = (userData) => API.put("/users/profile", userData);
+export const deleteUserAccount = () => API.delete("/users/account");
+
+// Property Management APIs
+export const getUserProperties = () => API.get("/users/properties");
+export const deleteUserProperty = (propertyId) => API.delete(`/properties/${propertyId}`);
 export default API;

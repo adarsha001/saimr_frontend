@@ -83,14 +83,133 @@ const fetchWithRetry = async (apiCall, retries = 2) => {
   }
 };
 
-// Update your API calls to use retry for critical ones
-export const fetchAllProperties = (params = {}) => {
-  return fetchWithRetry(() => API.get("/properties/all", { params }));
+// ==================== PROPERTY MANAGEMENT ENDPOINTS ====================
+
+// Property Management - ADD THESE MISSING EXPORTS
+export const fetchAllProperties = (params = {}) => 
+  fetchWithRetry(() => API.get("/properties/all", { params }));
+
+export const fetchPendingProperties = () => 
+  fetchWithRetry(() => API.get("/properties/pending"));
+
+export const fetchPropertiesByStatus = (status) => 
+  fetchWithRetry(() => API.get(`/properties?status=${status}`));
+
+export const approveProperty = (id) => 
+  API.put(`/properties/approve/${id}`);
+
+export const rejectProperty = (id, reason) => 
+  API.put(`/properties/reject/${id}`, { reason });
+
+export const toggleFeatured = (id) => 
+  API.put(`/properties/feature/${id}`);
+
+export const updatePropertyOrder = (id, data) => 
+  API.put(`/properties/order/${id}`, data);
+
+export const bulkUpdateProperties = (data) => 
+  API.put("/properties/bulk-update", data);
+
+export const fetchPropertyStats = () => 
+  fetchWithRetry(() => API.get("/properties/stats"));
+
+export const updateProperty = (id, data) => 
+  API.put(`/properties/${id}`, data);
+
+export const patchProperty = (id, data) => 
+  API.patch(`/properties/${id}`, data);
+
+// ==================== ENQUIRY MANAGEMENT ENDPOINTS ====================
+
+// Get all enquiries with pagination and filters
+export const fetchAllEnquiries = (page = 1, limit = 10, status = '', search = '') => {
+  const params = { page, limit };
+  if (status) params.status = status;
+  if (search) params.search = search;
+  
+  return fetchWithRetry(() => API.get("/enquiries", { params }));
 };
 
-export const fetchPendingProperties = () => {
-  return fetchWithRetry(() => API.get("/properties/pending"));
+// Get enquiry by ID
+export const fetchEnquiryById = (id) => 
+  fetchWithRetry(() => API.get(`/enquiries/${id}`));
+
+// Update enquiry status
+export const updateEnquiryStatus = (id, status, adminNotes = '') => 
+  API.put(`/enquiries/${id}/status`, { status, adminNotes });
+
+// Add notes to enquiry
+export const addEnquiryNotes = (id, notes) => 
+  API.post(`/enquiries/${id}/notes`, { notes });
+
+// Delete enquiry
+export const deleteEnquiry = (id) => 
+  API.delete(`/enquiries/${id}`);
+
+// Bulk update enquiries
+export const bulkUpdateEnquiries = (enquiryIds, updates) => 
+  API.put("/enquiries/bulk-update", { enquiryIds, updates });
+
+// Get enquiry statistics
+export const fetchEnquiryStats = (timeframe = '30d') => 
+  fetchWithRetry(() => API.get("/enquiries/stats", { params: { timeframe } }));
+
+// Export enquiries
+export const exportEnquiries = async (format = 'json', timeframe = '30d', status = '') => {
+  try {
+    const params = { format, timeframe };
+    if (status) params.status = status;
+
+    const response = await fetchWithRetry(() => API.get("/enquiries/export", {
+      params,
+      responseType: format === 'csv' ? 'blob' : 'json'
+    }));
+
+    if (format === 'csv') {
+      const blob = new Blob([response.data], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `enquiries-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      return { success: true, message: 'Enquiries CSV exported successfully' };
+    } else {
+      const dataStr = JSON.stringify(response.data, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `enquiries-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      return { success: true, message: 'Enquiries JSON exported successfully' };
+    }
+  } catch (error) {
+    console.error('Enquiry export error:', error);
+    throw error;
+  }
 };
+
+// Get enquiries by user ID
+export const fetchEnquiriesByUserId = (userId, page = 1, limit = 10) => 
+  fetchWithRetry(() => API.get(`/enquiries/user/${userId}`, { 
+    params: { page, limit } 
+  }));
+
+// ==================== USER MANAGEMENT ENDPOINTS ====================
+
+export const fetchAllUsers = (page = 1, limit = 10, search = '') => 
+  fetchWithRetry(() => API.get(`/users?page=${page}&limit=${limit}&search=${search}`));
+
+export const fetchUserById = (id) => 
+  fetchWithRetry(() => API.get(`/users/${id}`));
+
+// ==================== ANALYTICS ENDPOINTS ====================
 
 // Click Analytics Endpoints
 export const fetchClickAnalytics = (timeframe = '7d', type, propertyId) => {
@@ -221,27 +340,9 @@ export const fetchHourlyDistribution = async (timeframe = '7d', groupBy = 'hour'
   }
 };
 
+// ==================== TEST ENDPOINT ====================
+
 // Test connection first
 export const testConnection = () => API.get("/test");
 
-// Property Management
-export const fetchPropertiesByStatus = (status) => fetchWithRetry(() => API.get(`/properties?status=${status}`));
-export const approveProperty = (id) => API.put(`/properties/approve/${id}`);
-export const rejectProperty = (id, reason) => API.put(`/properties/reject/${id}`, { reason });
-export const toggleFeatured = (id) => API.put(`/properties/feature/${id}`);
-export const fetchAllUsers = (page = 1, limit = 10, search = '') => 
-  fetchWithRetry(() => API.get(`/users?page=${page}&limit=${limit}&search=${search}`));
-export const fetchUserById = (id) => fetchWithRetry(() => API.get(`/users/${id}`));
-
-// Property Management
-export const updatePropertyOrder = (id, data) => 
-  API.put(`/properties/order/${id}`, data);
-
-export const bulkUpdateProperties = (data) => 
-  API.put("/properties/bulk-update", data);
-
-export const fetchPropertyStats = () => 
-  fetchWithRetry(() => API.get("/properties/stats"));
-
-export const updateProperty = (id, data) => API.put(`/properties/${id}`, data);
-export const patchProperty = (id, data) => API.patch(`/properties/${id}`, data);
+export default API;
