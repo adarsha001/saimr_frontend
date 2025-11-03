@@ -19,7 +19,7 @@ const PropertyEdit = ({ propertyId, onClose, onUpdate }) => {
     approvalStatus: 'pending',
     displayOrder: 0,
     attributes: {
-      acre: '',
+      square: '',
       propertyLabel: '',
       leaseDuration: '',
       typeOfJV: '',
@@ -80,7 +80,7 @@ const PropertyEdit = ({ propertyId, onClose, onUpdate }) => {
       approvalStatus: propertyData.approvalStatus || 'pending',
       displayOrder: propertyData.displayOrder || 0,
       attributes: {
-        acre: propertyData.attributes?.acre || '',
+        square: propertyData.attributes?.square || '',
         propertyLabel: propertyData.attributes?.propertyLabel || '',
         leaseDuration: propertyData.attributes?.leaseDuration || '',
         typeOfJV: propertyData.attributes?.typeOfJV || '',
@@ -168,7 +168,7 @@ const PropertyEdit = ({ propertyId, onClose, onUpdate }) => {
       displayOrder: data.displayOrder === '' ? 0 : data.displayOrder,
       attributes: {
         ...data.attributes,
-        acre: data.attributes.acre === '' ? undefined : data.attributes.acre,
+        square: data.attributes.square === '' ? undefined : data.attributes.square,
         roadWidth: data.attributes.roadWidth === '' ? undefined : data.attributes.roadWidth,
         expectedROI: data.attributes.expectedROI === '' ? undefined : data.attributes.expectedROI
       },
@@ -312,9 +312,9 @@ const PropertyEdit = ({ propertyId, onClose, onUpdate }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   label="acre"
-                  name="acre"
-                  type="number"
-                  value={formData.attributes.acre}
+                  name="square"
+                  type="text"
+                  value={formData.attributes.square}
                   onChange={handleAttributeChange}
                 />
 

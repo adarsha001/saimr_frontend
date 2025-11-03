@@ -4,10 +4,10 @@ import { useAuth } from "../context/AuthContext"; // Assuming you have AuthConte
 
 // Updated category fields for non-residential properties
 const categoryFields = {
-  Outright: ["acre", "propertyLabel", "facing", "roadWidth", "legalClearance"],
-  Commercial: ["acre", "propertyLabel", "expectedROI", "facing", "roadWidth", "legalClearance"],
-  Farmland: ["acre", "propertyLabel", "irrigationAvailable", "waterSource", "soilType", "legalClearance"],
-  "JD/JV": ["acre", "propertyLabel", "typeOfJV", "expectedROI", "legalClearance"],
+  Outright: ["square", "propertyLabel", "facing", "roadWidth", "legalClearance"],
+  Commercial: ["square", "propertyLabel", "expectedROI", "facing", "roadWidth", "legalClearance"],
+  Farmland: ["square", "propertyLabel", "irrigationAvailable", "waterSource", "soilType", "legalClearance"],
+  "JD/JV": ["square", "propertyLabel", "typeOfJV", "expectedROI", "legalClearance"],
 };
 
 // Updated features based on backend schema
@@ -46,7 +46,7 @@ export default function AddProperty() {
     priceOnRequest: false,
     forSale: true,
     attributes: {
-      acre: "",
+      square: "",
       propertyLabel: "",
       leaseDuration: "",
       typeOfJV: "",
@@ -217,7 +217,7 @@ export default function AddProperty() {
         nearby: filteredNearby,
         attributes: {
           ...formData.attributes,
-          acre: formData.attributes.acre ? parseInt(formData.attributes.acre) : "",
+          square: formData.attributes.square ? parseInt(formData.attributes.square) : "",
           expectedROI: formData.attributes.expectedROI ? parseFloat(formData.attributes.expectedROI) : "",
           roadWidth: formData.attributes.roadWidth ? parseFloat(formData.attributes.roadWidth) : "",
         },
@@ -275,7 +275,7 @@ export default function AddProperty() {
         priceOnRequest: false,
         forSale: true,
         attributes: {
-          acre: "",
+          square: "",
           propertyLabel: "",
           leaseDuration: "",
           typeOfJV: "",
@@ -458,14 +458,14 @@ export default function AddProperty() {
         <div className="bg-gray-50 p-6 rounded-lg">
           <h2 className="text-xl font-semibold text-gray-700 mb-4">Property Details</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {visibleAttributes.includes("acre") && (
+            {visibleAttributes.includes("square") && (
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Acre*</label>
                 <input 
                   type="text" 
-                  name="attributes.acre" 
+                  name="attributes.square" 
                   placeholder="0" 
-                  value={formData.attributes.acre} 
+                  value={formData.attributes.square} 
                   onChange={handleChange}
                   className="w-full border border-gray-300 p-3 rounded-lg"
                   required

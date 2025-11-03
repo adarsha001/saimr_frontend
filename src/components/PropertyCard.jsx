@@ -42,15 +42,65 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
   // Add null checks for nested properties
   const safeAttributes = attributes || {};
   const safeImages = images || [];
+// Format price - handle numbers, "Price on Request", and string values like "30cr"
+const formatPrice = (price) => {
+  // Handle "Price on Request"
+  if (price === "Price on Request" || price === "price on request") {
+    return "Price on Request";
+  }
 
-  // Format price - handle both numbers and "Price on Request"
-  const formattedPrice = price === "Price on Request"
-    ? "Price on Request"
-    : typeof price === "number"
-      ? price >= 100000
-        ? `₹${(price / 100000).toFixed(2)}L`
-        : `₹${price.toLocaleString("en-IN")}`
-      : `Rs.${Number(price || 0).toLocaleString("en-IN")}`;
+  // Handle string values like "30cr", "2.5l", "50lakh", etc.
+  if (typeof price === 'string') {
+    const priceStr = price.toLowerCase().trim();
+    
+    // Check for crore variants
+    if (priceStr.includes('cr') || priceStr.includes('crore')) {
+      const numValue = parseFloat(priceStr.replace(/[^\d.]/g, ''));
+      if (!isNaN(numValue)) {
+        return `₹${numValue} Cr`;
+      }
+    }
+    
+    // Check for lakh variants
+    if (priceStr.includes('l') || priceStr.includes('lakh') || priceStr.includes('lac')) {
+      const numValue = parseFloat(priceStr.replace(/[^\d.]/g, ''));
+      if (!isNaN(numValue)) {
+        return `₹${numValue} L`;
+      }
+    }
+    
+    // Check for other numeric strings
+    const numericValue = parseFloat(priceStr.replace(/[^\d.]/g, ''));
+    if (!isNaN(numericValue)) {
+      // If it's a pure number string, use the original logic
+      return numericValue >= 10000000
+        ? `₹${(numericValue / 10000000).toFixed(2)} Cr`
+        : numericValue >= 100000
+        ? `₹${(numericValue / 100000).toFixed(2)} L`
+        : `₹${numericValue.toLocaleString("en-IN")}`;
+    }
+  }
+
+  // Handle numeric values
+  if (typeof price === 'number') {
+    return price >= 10000000
+      ? `₹${(price / 10000000).toFixed(2)} Cr`
+      : price >= 100000
+      ? `₹${(price / 100000).toFixed(2)} L`
+      : `₹${price.toLocaleString("en-IN")}`;
+  }
+
+  // Fallback for other cases
+  const numericFallback = Number(price || 0);
+  return numericFallback >= 10000000
+    ? `₹${(numericFallback / 10000000).toFixed(2)} Cr`
+    : numericFallback >= 100000
+    ? `₹${(numericFallback / 100000).toFixed(2)} L`
+    : `₹${numericFallback.toLocaleString("en-IN")}`;
+};
+
+// Usage in your property creation:
+const formattedPrice = formatPrice(price);
 
   // Check if property is liked using global state - with null check
   const isLiked = _id ? isPropertyLiked(_id) : false;
@@ -264,12 +314,12 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
 
               {/* Property Details */}
               <div className="flex flex-wrap gap-4 mb-4 pb-4 border-b border-gray-200">
-                {/* acre Footage */}
-                {safeAttributes?.acre > 0 && (
+                {/* Square Footage */}
+                {safeAttributes?.square > 0 && (
                   <div className="flex items-center gap-2 text-gray-700">
                     <Ruler className="w-5 h-5 text-gray-700" />
-                    <span className="font-semibold">{safeAttributes.acre.toLocaleString()}</span>
-                    <span className="text-sm text-gray-500">sqft</span>
+                    <span className="font-semibold">{safeAttributes.square.toLocaleString()}</span>
+                    <span className="text-sm text-gray-500">acre</span>
                   </div>
                 )}
 
@@ -306,9 +356,9 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
                 }`}>
                   {formattedPrice}
                 </div>
-                {safeAttributes?.acre > 0 && typeof price === 'number' && price > 0 && (
+                {safeAttributes?.square > 0 && typeof price === 'number' && price > 0 && (
                   <div className="text-xs text-gray-500 mt-1">
-                    ₹{(price / safeAttributes.acre).toFixed(0)}/sqft
+                    ₹{(price / safeAttributes.square).toFixed(0)}/acre
                   </div>
                 )}
               </div>
@@ -437,11 +487,11 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
 
         {/* Property Details */}
         <div className="flex flex-wrap gap-3 mb-4 pb-4 border-b border-gray-200">
-          {/* acre Footage */}
-          {safeAttributes?.acre > 0 && (
+          {/* Square Footage */}
+          {safeAttributes?.square > 0 && (
             <div className="flex items-center gap-1.5 text-gray-700">
               <Ruler className="w-4 h-4 text-gray-700" />
-              <span className="text-sm font-semibold">{safeAttributes.acre.toLocaleString()} sqft</span>
+              <span className="text-sm font-semibold">{safeAttributes.square.toLocaleString()} acre</span>
             </div>
           )}
 
@@ -462,9 +512,9 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
             }`}>
               {formattedPrice}
             </div>
-            {safeAttributes?.acre > 0 && typeof price === 'number' && price > 0 && (
+            {safeAttributes?.square > 0 && typeof price === 'number' && price > 0 && (
               <div className="text-xs text-gray-500 mt-0.5">
-                ₹{(price / safeAttributes.acre).toFixed(0)}/sqft
+                ₹{(price / safeAttributes.square).toFixed(0)}/acre
               </div>
             )}
           </div>

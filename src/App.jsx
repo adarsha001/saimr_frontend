@@ -26,6 +26,7 @@ import AdminEnquiries from "./components/AdminEnquiries";
 
 // NotFound Component
 import NotFound from "./components/NotFound";
+import ScrollToTop from "./components/ScrollToTop";
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
       <AuthProvider>
         <LikesProvider>
           <ViewModeProvider>
+             <ScrollToTop />
             <Navbar />
             
             {/* Global Enquiry Form - Shows on all pages except admin */}

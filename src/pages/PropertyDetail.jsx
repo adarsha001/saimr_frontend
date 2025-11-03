@@ -198,14 +198,14 @@ export default function PropertyDetail() {
       case "Commercial":
         return (
           <>
-            {attributes?.acre && (
+            {attributes?.square && (
               <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
                   <span className="text-lg sm:text-xl text-white">📐</span>
                 </div>
                 <div>
-                  <p className="text-xl sm:text-2xl font-serif font-bold text-gray-900">{attributes.acre.toLocaleString()}</p>
-                  <p className="text-xs sm:text-sm text-gray-600 font-light tracking-wide">acre</p>
+                  <p className="text-xl sm:text-2xl font-serif font-bold text-gray-900">{attributes.square.toLocaleString()}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 font-light tracking-wide">arce </p>
                 </div>
               </div>
             )}
@@ -226,13 +226,13 @@ export default function PropertyDetail() {
       case "Farmland":
         return (
           <>
-            {attributes?.acre && (
+            {attributes?.square && (
               <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
                   <span className="text-lg sm:text-xl text-white">🌾</span>
                 </div>
                 <div>
-                  <p className="text-xl sm:text-2xl font-serif font-bold text-gray-900">{attributes.acre.toLocaleString()}</p>
+                  <p className="text-xl sm:text-2xl font-serif font-bold text-gray-900">{attributes.square.toLocaleString()}</p>
                   <p className="text-xs sm:text-sm text-gray-600 font-light tracking-wide">Acres</p>
                 </div>
               </div>
@@ -255,14 +255,14 @@ export default function PropertyDetail() {
       case "JD/JV":
         return (
           <>
-            {attributes?.acre && (
+            {attributes?.square && (
               <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
                   <span className="text-lg sm:text-xl text-white">📐</span>
                 </div>
                 <div>
-                  <p className="text-xl sm:text-2xl font-serif font-bold text-gray-900">{attributes.acre.toLocaleString()}</p>
-                  <p className="text-xs sm:text-sm text-gray-600 font-light tracking-wide">acre Yards</p>
+                  <p className="text-xl sm:text-2xl font-serif font-bold text-gray-900">{attributes.square.toLocaleString()}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 font-light tracking-wide">acre </p>
                 </div>
               </div>
             )}
@@ -352,11 +352,11 @@ export default function PropertyDetail() {
               <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-1 sm:mb-2">
                 rs{price}
               </div>
-              {attributes?.acre && typeof price === "number" && (
+              {attributes?.square && typeof price === "number" && (
                 <p className="text-xs sm:text-sm text-gray-600 font-light tracking-wide">
                   {category === "Farmland" 
-                    ? `₹${(price / attributes.acre).toFixed(0)}/acre`
-                    : `₹${(price / attributes.acre).toFixed(0)}/sqft`
+                    ? `₹${(price / attributes.square).toFixed(0)}/acre`
+                    : `₹${(price / attributes.square).toFixed(0)}/acre`
                   }
                 </p>
               )}
@@ -408,7 +408,7 @@ export default function PropertyDetail() {
                   <button
                     key={i}
                     onClick={() => setSelectedImage(i)}
-                    className={`relative aspect-acre rounded-lg sm:rounded-xl overflow-hidden transition-all border-2 ${
+                    className={`relative aspect-square rounded-lg sm:rounded-xl overflow-hidden transition-all border-2 ${
                       selectedImage === i
                         ? 'border-gray-900 scale-110 shadow-lg'
                         : 'border-gray-200 hover:border-gray-400 hover:scale-105 opacity-80 hover:opacity-100'

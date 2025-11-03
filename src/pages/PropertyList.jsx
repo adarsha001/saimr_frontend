@@ -94,11 +94,11 @@ useEffect(() => {
 
       const matchesArea = areaRange
         ? (() => {
-            const area = p.attributes?.acre || 0;
-            if (areaRange === "0-1000") return area <= 1000;
-            if (areaRange === "1000-5000") return area > 1000 && area <= 5000;
-            if (areaRange === "5000-10000") return area > 5000 && area <= 10000;
-            if (areaRange === "10000+") return area > 10000;
+            const area = p.attributes?.square || 0;
+            if (areaRange === "0-10") return area <= 10;
+            if (areaRange === "10-50") return area > 10 && area <= 50;
+            if (areaRange === "50-100") return area > 50 && area <= 100;
+            if (areaRange === "100+") return area > 1000;
             return true;
           })()
         : true;
@@ -123,8 +123,8 @@ useEffect(() => {
       return priceB - priceA;
     }
     if (sort === "name") return a.title?.localeCompare(b.title) || 0;
-    if (sort === "area-low") return (a.attributes?.acre || 0) - (b.attributes?.acre || 0);
-    if (sort === "area-high") return (b.attributes?.acre || 0) - (a.attributes?.acre || 0);
+    if (sort === "area-low") return (a.attributes?.square || 0) - (b.attributes?.square || 0);
+    if (sort === "area-high") return (b.attributes?.square || 0) - (a.attributes?.square || 0);
     if (sort === "newest") return new Date(b.createdAt) - new Date(a.createdAt);
     if (sort === "oldest") return new Date(a.createdAt) - new Date(b.createdAt);
     return 0;
@@ -526,7 +526,7 @@ useEffect(() => {
               <div>
                 <label className="block text-sm font-serif font-medium text-gray-700 mb-2 tracking-wide">
                   <Maximize className="w-4 h-4 inline mr-1" />
-                  Area (sqft)
+                  Area (acre)
                 </label>
                 <select
                   className="w-full border-2 border-gray-300 rounded-lg px-4 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-500 transition-all font-serif"
@@ -534,10 +534,10 @@ useEffect(() => {
                   onChange={(e) => setAreaRange(e.target.value)}
                 >
                   <option value="">Any Size</option>
-                  <option value="0-1000">Under 1,000 sqft</option>
-                  <option value="1000-5000">1,000 - 5,000 sqft</option>
-                  <option value="5000-10000">5,000 - 10,000 sqft</option>
-                  <option value="10000+">Above 10,000 sqft</option>
+                  <option value="0-10">Under 10 acre</option>
+                  <option value="10-50">10 - 50 acre</option>
+                  <option value="50-100">50 - 100 acre</option>
+                  <option value="100+">Above 100 acre</option>
                 </select>
               </div>
             </div>
