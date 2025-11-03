@@ -264,11 +264,11 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
 
               {/* Property Details */}
               <div className="flex flex-wrap gap-4 mb-4 pb-4 border-b border-gray-200">
-                {/* Square Footage */}
-                {safeAttributes?.square > 0 && (
+                {/* acre Footage */}
+                {safeAttributes?.acre > 0 && (
                   <div className="flex items-center gap-2 text-gray-700">
                     <Ruler className="w-5 h-5 text-gray-700" />
-                    <span className="font-semibold">{safeAttributes.square.toLocaleString()}</span>
+                    <span className="font-semibold">{safeAttributes.acre.toLocaleString()}</span>
                     <span className="text-sm text-gray-500">sqft</span>
                   </div>
                 )}
@@ -306,9 +306,9 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
                 }`}>
                   {formattedPrice}
                 </div>
-                {safeAttributes?.square > 0 && typeof price === 'number' && price > 0 && (
+                {safeAttributes?.acre > 0 && typeof price === 'number' && price > 0 && (
                   <div className="text-xs text-gray-500 mt-1">
-                    ₹{(price / safeAttributes.square).toFixed(0)}/sqft
+                    ₹{(price / safeAttributes.acre).toFixed(0)}/sqft
                   </div>
                 )}
               </div>
@@ -437,11 +437,11 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
 
         {/* Property Details */}
         <div className="flex flex-wrap gap-3 mb-4 pb-4 border-b border-gray-200">
-          {/* Square Footage */}
-          {safeAttributes?.square > 0 && (
+          {/* acre Footage */}
+          {safeAttributes?.acre > 0 && (
             <div className="flex items-center gap-1.5 text-gray-700">
               <Ruler className="w-4 h-4 text-gray-700" />
-              <span className="text-sm font-semibold">{safeAttributes.square.toLocaleString()} sqft</span>
+              <span className="text-sm font-semibold">{safeAttributes.acre.toLocaleString()} sqft</span>
             </div>
           )}
 
@@ -462,9 +462,9 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
             }`}>
               {formattedPrice}
             </div>
-            {safeAttributes?.square > 0 && typeof price === 'number' && price > 0 && (
+            {safeAttributes?.acre > 0 && typeof price === 'number' && price > 0 && (
               <div className="text-xs text-gray-500 mt-0.5">
-                ₹{(price / safeAttributes.square).toFixed(0)}/sqft
+                ₹{(price / safeAttributes.acre).toFixed(0)}/sqft
               </div>
             )}
           </div>

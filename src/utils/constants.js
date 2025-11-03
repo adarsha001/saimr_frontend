@@ -71,14 +71,14 @@ export const PROPERTY_FEATURES = {
 // Category-specific form fields
 export const CATEGORY_FIELDS = {
   Outright: [
-    "square", 
+    "acre", 
     "propertyLabel", 
     "facing", 
     "roadWidth", 
     "legalClearance"
   ],
   Commercial: [
-    "square", 
+    "acre", 
     "propertyLabel", 
     "expectedROI", 
     "facing", 
@@ -86,7 +86,7 @@ export const CATEGORY_FIELDS = {
     "legalClearance"
   ],
   Farmland: [
-    "square", 
+    "acre", 
     "propertyLabel", 
     "irrigationAvailable", 
     "waterSource", 
@@ -94,7 +94,7 @@ export const CATEGORY_FIELDS = {
     "legalClearance"
   ],
   "JD/JV": [
-    "square", 
+    "acre", 
     "propertyLabel", 
     "typeOfJV", 
     "expectedROI", 
@@ -222,8 +222,8 @@ export const SORT_OPTIONS = [
   { value: 'createdAt_asc', label: 'Oldest First' },
   { value: 'price_desc', label: 'Price: High to Low' },
   { value: 'price_asc', label: 'Price: Low to High' },
-  { value: 'square_desc', label: 'Area: Large to Small' },
-  { value: 'square_asc', label: 'Area: Small to Large' }
+  { value: 'acre_desc', label: 'Area: Large to Small' },
+  { value: 'acre_asc', label: 'Area: Small to Large' }
 ];
 
 // Price ranges for filters
@@ -235,7 +235,7 @@ export const PRICE_RANGES = [
   { label: 'Over ₹5Cr', min: 50000000, max: null }
 ];
 
-// Area ranges for filters (in square feet)
+// Area ranges for filters (in acre)
 export const AREA_RANGES = [
   { label: 'Under 1000 sq.ft', min: 0, max: 1000 },
   { label: '1000 - 5000 sq.ft', min: 1000, max: 5000 },
@@ -258,7 +258,7 @@ export const VALIDATION = {
     MIN: 0,
     MAX: 1000000000 // 100Cr
   },
-  SQUARE_FEET: {
+  acre_FEET: {
     MIN: 1,
     MAX: 10000000
   },
@@ -338,7 +338,7 @@ export const DEFAULT_FORM_VALUES = {
   forSale: true,
   isVerified: false,
   attributes: {
-    square: '',
+    acre: '',
     propertyLabel: '',
     leaseDuration: '',
     typeOfJV: '',

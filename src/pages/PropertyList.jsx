@@ -94,7 +94,7 @@ useEffect(() => {
 
       const matchesArea = areaRange
         ? (() => {
-            const area = p.attributes?.square || 0;
+            const area = p.attributes?.acre || 0;
             if (areaRange === "0-1000") return area <= 1000;
             if (areaRange === "1000-5000") return area > 1000 && area <= 5000;
             if (areaRange === "5000-10000") return area > 5000 && area <= 10000;
@@ -123,8 +123,8 @@ useEffect(() => {
       return priceB - priceA;
     }
     if (sort === "name") return a.title?.localeCompare(b.title) || 0;
-    if (sort === "area-low") return (a.attributes?.square || 0) - (b.attributes?.square || 0);
-    if (sort === "area-high") return (b.attributes?.square || 0) - (a.attributes?.square || 0);
+    if (sort === "area-low") return (a.attributes?.acre || 0) - (b.attributes?.acre || 0);
+    if (sort === "area-high") return (b.attributes?.acre || 0) - (a.attributes?.acre || 0);
     if (sort === "newest") return new Date(b.createdAt) - new Date(a.createdAt);
     if (sort === "oldest") return new Date(a.createdAt) - new Date(b.createdAt);
     return 0;

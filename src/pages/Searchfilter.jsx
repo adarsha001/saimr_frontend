@@ -21,8 +21,8 @@ export default function Home() {
     bedrooms: "",
     bathrooms: "",
     floors: "",
-    minSquare: "",
-    maxSquare: "",
+    minacre: "",
+    maxacre: "",
     propertyLabel: "",
     minROI: "",
     forSale: "",
@@ -158,15 +158,15 @@ export default function Home() {
       }
     }
 
-    // Square footage filter
-    if (filters.minSquare) {
+    // acre footage filter
+    if (filters.minacre) {
       filtered = filtered.filter(property => 
-        property.attributes?.square >= parseInt(filters.minSquare)
+        property.attributes?.acre >= parseInt(filters.minacre)
       );
     }
-    if (filters.maxSquare) {
+    if (filters.maxacre) {
       filtered = filtered.filter(property => 
-        property.attributes?.square <= parseInt(filters.maxSquare)
+        property.attributes?.acre <= parseInt(filters.maxacre)
       );
     }
 
@@ -289,8 +289,8 @@ export default function Home() {
       bedrooms: "",
       bathrooms: "",
       floors: "",
-      minSquare: "",
-      maxSquare: "",
+      minacre: "",
+      maxacre: "",
       propertyLabel: "",
       minROI: "",
       forSale: "",
@@ -476,22 +476,22 @@ export default function Home() {
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Min Square Ft</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Min acre Ft</label>
                     <input
                       type="number"
                       placeholder="Min sq.ft"
-                      value={filters.minSquare}
-                      onChange={(e) => handleFilterChange("minSquare", e.target.value)}
+                      value={filters.minacre}
+                      onChange={(e) => handleFilterChange("minacre", e.target.value)}
                       className="w-full p-2 border border-gray-300 rounded-md"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Max Square Ft</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Max acre Ft</label>
                     <input
                       type="number"
                       placeholder="Max sq.ft"
-                      value={filters.maxSquare}
-                      onChange={(e) => handleFilterChange("maxSquare", e.target.value)}
+                      value={filters.maxacre}
+                      onChange={(e) => handleFilterChange("maxacre", e.target.value)}
                       className="w-full p-2 border border-gray-300 rounded-md"
                     />
                   </div>
@@ -745,7 +745,7 @@ export default function Home() {
                     {property.attributes?.bedrooms && <span>🛏️ {property.attributes.bedrooms} beds</span>}
                     {property.attributes?.bathrooms && <span>🚿 {property.attributes.bathrooms} baths</span>}
                     {property.attributes?.floors && <span>🏢 {property.attributes.floors} floors</span>}
-                    {property.attributes?.square && <span>📏 {property.attributes.square} sq.ft</span>}
+                    {property.attributes?.acre && <span>📏 {property.attributes.acre} sq.ft</span>}
                   </div>
                   {property.attributes?.propertyLabel && (
                     <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mb-2">
