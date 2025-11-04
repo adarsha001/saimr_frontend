@@ -111,13 +111,18 @@ APII.interceptors.response.use(
 // API functions
 
 // JSON APIs
-export const getProperties = () => API.get("/properties");
+export const getProperties = (params = {}) => API.get("/properties", { params });
 export const getPropertyById = (id) => API.get(`/properties/${id}`);
 export const likeProperty = (propertyId) => API.post(`/users/like/${propertyId}`);
 export const unlikeProperty = (propertyId) => API.delete(`/users/like/${propertyId}`);
 export const checkIfLiked = (propertyId) => API.get(`/users/like/${propertyId}/check`);
 export const toggleLike = (propertyId) => API.post(`/users/like/${propertyId}/toggle`);
-export const getAllProperties = () => API.get("/properties");
+export const getAllProperties = () => API.get("/properties", { 
+  params: { 
+    limit: 1000, 
+    page: 1 
+  } 
+});
 export const createEnquiry = (enquiryData) => API.post("/auth/enquiries", enquiryData);
 export const getUserProfile = () => API.get("/users/profile");
 export const getUserEnquiries = () => API.get("/users/my-enquiries");
