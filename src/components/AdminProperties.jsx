@@ -25,7 +25,7 @@ const DraggablePropertyRow = ({
   handleOrderChange, 
   handleIndividualAction, 
   getStatusBadge,
-  onEditProperty // Add this prop
+  onEditProperty
 }) => {
   const ref = React.useRef(null);
   const navigate = useNavigate();
@@ -385,7 +385,7 @@ const BulkEditModal = ({ isOpen, onClose, selectedCount, onBulkUpdate }) => {
 };
 
 // Main Admin Properties Component
-const AdminProperties = ({ onEditProperty }) => { // Add onEditProperty prop
+const AdminProperties = ({ onEditProperty }) => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
@@ -399,34 +399,22 @@ const AdminProperties = ({ onEditProperty }) => { // Add onEditProperty prop
     sortBy: 'displayOrder',
     sortOrder: 'asc'
   });
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    total: 0
-  });
   const [isReordering, setIsReordering] = useState(false);
   const [showBulkEdit, setShowBulkEdit] = useState(false);
 
-  const getProperties = async (page = 1) => {
+  const getProperties = async () => {
     setLoading(true);
     try {
+      // Remove pagination parameters and fetch all properties
       const params = {
-        page,
-        limit: 12,
-        ...filters
+        ...filters,
+        limit: 1000 // Set a high limit to get all properties
       };
       
       const { data } = await fetchAllProperties(params);
       
-      if (!isReordering) {
-        setProperties(data.properties);
-      }
+      setProperties(data.properties || []);
       
-      setPagination({
-        currentPage: data.currentPage,
-        totalPages: data.totalPages,
-        total: data.total
-      });
     } catch (error) {
       console.error('Error fetching properties:', error);
       alert('Error fetching properties');
@@ -483,7 +471,7 @@ const AdminProperties = ({ onEditProperty }) => { // Add onEditProperty prop
 
   const resetPropertyOrder = async () => {
     setIsReordering(false);
-    await getProperties(pagination.currentPage);
+    await getProperties();
   };
 
   const handleFilterChange = (key, value) => {
@@ -552,7 +540,7 @@ const AdminProperties = ({ onEditProperty }) => { // Add onEditProperty prop
         )
       );
       
-      await getProperties(pagination.currentPage);
+      await getProperties();
     } catch (error) {
       console.error('Error updating order:', error);
       alert('Error updating property order');
@@ -597,15 +585,12 @@ const AdminProperties = ({ onEditProperty }) => { // Add onEditProperty prop
     }
   };
 
-  // New Bulk Edit Function
   const handleBulkEdit = async (updates) => {
     try {
-      // Convert updates to the format expected by bulkUpdateProperties
       const bulkUpdates = [];
       
       Object.entries(updates).forEach(([field, value]) => {
         if (value !== '') {
-          // Convert string booleans to actual booleans
           let processedValue = value;
           if (field === 'forSale' || field === 'isFeatured' || field === 'isVerified') {
             processedValue = value === 'true';
@@ -618,7 +603,6 @@ const AdminProperties = ({ onEditProperty }) => { // Add onEditProperty prop
         }
       });
 
-      // Execute each update separately
       for (const update of bulkUpdates) {
         const { data } = await bulkUpdateProperties({
           propertyIds: Array.from(selectedProperties),
@@ -626,7 +610,6 @@ const AdminProperties = ({ onEditProperty }) => { // Add onEditProperty prop
           value: update.value
         });
 
-        // Update local state
         const updatedPropertiesMap = new Map();
         data.properties.forEach(property => {
           updatedPropertiesMap.set(property._id, property);
@@ -639,7 +622,6 @@ const AdminProperties = ({ onEditProperty }) => { // Add onEditProperty prop
         );
       }
 
-      // Update stats if needed
       if (stats) {
         const newStats = { ...stats };
         
@@ -764,6 +746,9 @@ const AdminProperties = ({ onEditProperty }) => { // Add onEditProperty prop
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Property Management</h1>
             <p className="text-gray-600 mt-2">Manage, verify, and feature properties</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Showing {properties.length} properties
+            </p>
           </div>
 
           {/* Drag & Drop Controls */}
@@ -809,10 +794,6 @@ const AdminProperties = ({ onEditProperty }) => { // Add onEditProperty prop
                 <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
                 <div className="text-sm text-gray-600">Approved</div>
               </div>
-              {/* <div className="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
-                <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
-                <div className="text-sm text-gray-600">Rejected</div>
-              </div> */}
               <div className="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
                 <div className="text-2xl font-bold text-purple-600">{stats.featured}</div>
                 <div className="text-sm text-gray-600">Featured</div>
@@ -1020,36 +1001,13 @@ const AdminProperties = ({ onEditProperty }) => { // Add onEditProperty prop
                       handleOrderChange={handleOrderChange}
                       handleIndividualAction={handleIndividualAction}
                       getStatusBadge={getStatusBadge}
-                      onEditProperty={onEditProperty} // Pass the edit function
+                      onEditProperty={onEditProperty}
                     />
                   ))}
                 </tbody>
               </table>
             </div>
           </div>
-
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <div className="flex justify-center mt-6 space-x-2">
-              <button
-                onClick={() => getProperties(pagination.currentPage - 1)}
-                disabled={pagination.currentPage === 1}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors"
-              >
-                Previous
-              </button>
-              <span className="px-4 py-2 text-sm text-gray-700">
-                Page {pagination.currentPage} of {pagination.totalPages}
-              </span>
-              <button
-                onClick={() => getProperties(pagination.currentPage + 1)}
-                disabled={pagination.currentPage === pagination.totalPages}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors"
-              >
-                Next
-              </button>
-            </div>
-          )}
 
           {properties.length === 0 && !loading && (
             <div className="text-center py-12">
