@@ -396,7 +396,7 @@ const formattedPrice = formatPrice(price);
                     ? "text-gray-600"
                     : "text-gray-900"
                 }`}>
-                  {formattedPrice}
+                  {price}
                 </div>
                 {safeAttributes?.square > 0 && typeof price === 'number' && price > 0 && (
                   <div className="text-xs text-gray-500 mt-1">
@@ -552,7 +552,7 @@ const formattedPrice = formatPrice(price);
                 ? "text-gray-600"
                 : "text-gray-900"
             }`}>
-              {formattedPrice}
+              {price}
             </div>
             {safeAttributes?.square > 0 && typeof price === 'number' && price > 0 && (
               <div className="text-xs text-gray-500 mt-0.5">
