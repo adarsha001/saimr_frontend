@@ -32,6 +32,7 @@ export default function PropertyDetail() {
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [showShareOptions, setShowShareOptions] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -48,6 +49,42 @@ export default function PropertyDetail() {
     };
     fetchProperty();
   }, [id]);
+
+  // WhatsApp share function
+  const shareOnWhatsApp = () => {
+    if (!property) return;
+    
+    const { title, propertyLocation, city, price } = property;
+    const propertyUrl = window.location.href;
+    
+    const message = `Check out this property: ${title}\n\n📍 Location: ${propertyLocation}, ${city}\n💰 Price: ${price}\n\nView more details: ${propertyUrl}`;
+    
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+    
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    setShowShareOptions(false);
+  };
+
+  // Copy link to clipboard
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      alert('Property link copied to clipboard!');
+      setShowShareOptions(false);
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = window.location.href;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('Property link copied to clipboard!');
+      setShowShareOptions(false);
+    }
+  };
 
   if (loading)
     return (
@@ -312,13 +349,54 @@ export default function PropertyDetail() {
       {/* Header Section */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 sm:gap-3 text-gray-600 hover:text-gray-900 transition-colors group mb-4 sm:mb-6"
-          >
-            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-x-1 transition-transform" />
-            <span className="font-serif font-medium tracking-wide text-sm sm:text-base">Back to listings</span>
-          </button>
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 sm:gap-3 text-gray-600 hover:text-gray-900 transition-colors group"
+            >
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-x-1 transition-transform" />
+              <span className="font-serif font-medium tracking-wide text-sm sm:text-base">Back to listings</span>
+            </button>
+
+            {/* Share Button - Only for logged-in users */}
+            {user && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowShareOptions(!showShareOptions)}
+                  className="flex items-center gap-2 sm:gap-3 bg-gray-900 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg sm:rounded-xl hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl font-serif font-medium tracking-wide text-sm sm:text-base"
+                >
+                  <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                  Share
+                </button>
+
+                {/* Share Options Dropdown */}
+                {showShareOptions && (
+                  <div className="absolute right-0 top-full mt-2 w-48 sm:w-56 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
+                    <button
+                      onClick={shareOnWhatsApp}
+                      className="w-full flex items-center gap-3 sm:gap-4 px-4 py-3 sm:px-6 sm:py-4 text-left hover:bg-green-50 transition-colors border-b border-gray-100"
+                    >
+                      <span className="text-xl">💚</span>
+                      <div>
+                        <p className="font-serif font-semibold text-gray-900 text-sm sm:text-base">Share on WhatsApp</p>
+                        <p className="text-xs text-gray-600 font-light">Share with friends & family</p>
+                      </div>
+                    </button>
+                    <button
+                      onClick={copyToClipboard}
+                      className="w-full flex items-center gap-3 sm:gap-4 px-4 py-3 sm:px-6 sm:py-4 text-left hover:bg-gray-50 transition-colors"
+                    >
+                      <span className="text-xl">🔗</span>
+                      <div>
+                        <p className="font-serif font-semibold text-gray-900 text-sm sm:text-base">Copy Link</p>
+                        <p className="text-xs text-gray-600 font-light">Copy property URL</p>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 sm:gap-6">
             <div className="flex-1">
@@ -387,63 +465,70 @@ export default function PropertyDetail() {
         </div>
       </div>
 
+      {/* Close dropdown when clicking outside */}
+      {showShareOptions && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setShowShareOptions(false)}
+        />
+      )}
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6 sm:space-y-8">
             {/* Images Gallery */}
             {images?.length > 0 && (
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl overflow-hidden border border-gray-200">
-          {/* Main Image Container - Much Larger */}
-          <div className="relative rounded-xl sm:rounded-2xl overflow-hidden" style={{ height: '500px', maxHeight: '600px' }}>
-            <img
-              src={images[selectedImage]?.url}
-              alt={title}
-              className="w-full h-full object-cover"
-            />
-            {images.length > 1 && (
-              <>
-                <button
-                  onClick={() => setSelectedImage((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
-                  className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all shadow-xl border border-gray-200 hover:scale-110"
-                >
-                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
-                </button>
-                <button
-                  onClick={() => setSelectedImage((prev) => (prev === images.length - 1 ? 0 : prev + 1))}
-                  className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all shadow-xl border border-gray-200 hover:scale-110"
-                >
-                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
-                </button>
-              </>
-            )}
-            <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-6 bg-black/70 backdrop-blur-sm text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-sm font-serif font-medium tracking-wide">
-              {selectedImage + 1} / {images.length}
-            </div>
-          </div>
-          
-          {/* Thumbnail Grid */}
-          {images.length > 1 && (
-            <div className="p-4 sm:p-6">
-              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 sm:gap-4">
-                {images.map((img, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setSelectedImage(i)}
-                    className={`relative aspect-square rounded-lg sm:rounded-xl overflow-hidden transition-all border-2 ${
-                      selectedImage === i
-                        ? 'border-gray-900 scale-110 shadow-lg'
-                        : 'border-gray-200 hover:border-gray-400 hover:scale-105 opacity-80 hover:opacity-100'
-                    }`}
-                  >
-                    <img
-                      src={img.url}
-                      alt={`${title} ${i + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-          
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl overflow-hidden border border-gray-200">
+                {/* Main Image Container - Much Larger */}
+                <div className="relative rounded-xl sm:rounded-2xl overflow-hidden" style={{ height: '500px', maxHeight: '600px' }}>
+                  <img
+                    src={images[selectedImage]?.url}
+                    alt={title}
+                    className="w-full h-full object-cover"
+                  />
+                  {images.length > 1 && (
+                    <>
+                      <button
+                        onClick={() => setSelectedImage((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
+                        className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all shadow-xl border border-gray-200 hover:scale-110"
+                      >
+                        <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
+                      </button>
+                      <button
+                        onClick={() => setSelectedImage((prev) => (prev === images.length - 1 ? 0 : prev + 1))}
+                        className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all shadow-xl border border-gray-200 hover:scale-110"
+                      >
+                        <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
+                      </button>
+                    </>
+                  )}
+                  <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-6 bg-black/70 backdrop-blur-sm text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-sm font-serif font-medium tracking-wide">
+                    {selectedImage + 1} / {images.length}
+                  </div>
+                </div>
+                
+                {/* Thumbnail Grid */}
+                {images.length > 1 && (
+                  <div className="p-4 sm:p-6">
+                    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 sm:gap-4">
+                      {images.map((img, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setSelectedImage(i)}
+                          className={`relative aspect-square rounded-lg sm:rounded-xl overflow-hidden transition-all border-2 ${
+                            selectedImage === i
+                              ? 'border-gray-900 scale-110 shadow-lg'
+                              : 'border-gray-200 hover:border-gray-400 hover:scale-105 opacity-80 hover:opacity-100'
+                          }`}
+                        >
+                          <img
+                            src={img.url}
+                            alt={`${title} ${i + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -642,15 +727,16 @@ export default function PropertyDetail() {
                     )}
                   </div>
                   
-                              <a
-      href={`https://wa.me/${createdBy.phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(`Hello, I'm interested in your property: ${title} (${propertyLocation}, ${city})`)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className=""
-    >  <button className="w-full mt-4 sm:mt-6 bg-gray-900 text-white px-4 py-3 sm:px-6 sm:py-4 rounded-lg sm:rounded-xl hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl font-serif font-semibold tracking-wide text-sm sm:text-base flex items-center justify-center gap-2 sm:gap-3">
-      <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                    Send Message
-                  </button></a>    
+                  <a
+                    href={`https://wa.me/${createdBy.phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(`Hello, I'm interested in your property: ${title} (${propertyLocation}, ${city})`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <button className="w-full mt-4 sm:mt-6 bg-gray-900 text-white px-4 py-3 sm:px-6 sm:py-4 rounded-lg sm:rounded-xl hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl font-serif font-semibold tracking-wide text-sm sm:text-base flex items-center justify-center gap-2 sm:gap-3">
+                      <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                      Send Message
+                    </button>
+                  </a>    
                 </div>
               ) : (
                 <div className="bg-white p-4 sm:p-6 md:p-8 rounded-lg sm:rounded-xl border-2 border-gray-200 text-center">
@@ -713,8 +799,8 @@ export default function PropertyDetail() {
         </div>
       </div>
 
-<FeaturedProperties/>
-<VerifiedProperties/>
+      <FeaturedProperties/>
+      <VerifiedProperties/>
       <Footer/>
     </div>
   );
