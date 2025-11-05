@@ -45,14 +45,41 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
 // Format price - handle numbers, "Price on Request", and string values like "30cr"
 const formatPrice = (price) => {
   // Handle "Price on Request"
-  if (price === "Price on Request" || price === "price on request") {
+  if (price === "Price on Request" || price === "price on request" || price === "POR") {
     return "Price on Request";
   }
 
-  // Handle string values like "30cr", "2.5l", "50lakh", etc.
+  // Handle string values
   if (typeof price === 'string') {
     const priceStr = price.toLowerCase().trim();
     
+    // Check for per square foot variants
+    const perSqftMatch = priceStr.match(/([\d.,]+)\s*(?:rs?|₹)?\s*\/?\s*(?:sq\s*ft|sqft|per\s*sq\s*ft|per\s*sqft)/i);
+    if (perSqftMatch) {
+      const numValue = parseFloat(perSqftMatch[1].replace(/,/g, ''));
+      if (!isNaN(numValue)) {
+        const formatted = `₹${numValue.toLocaleString("en-IN")}/sqft`;
+        // Check if negotiable is mentioned
+        if (priceStr.includes('negotiable') || priceStr.includes('neg')) {
+          return `${formatted} (Negotiable)`;
+        }
+        return formatted;
+      }
+    }
+
+    // Check for "per Sqft" at the end
+    const perSqftEndMatch = priceStr.match(/([\d.,]+)\s*(?:rs?|₹)?\s*per\s*sq\s*ft/i);
+    if (perSqftEndMatch) {
+      const numValue = parseFloat(perSqftEndMatch[1].replace(/,/g, ''));
+      if (!isNaN(numValue)) {
+        const formatted = `₹${numValue.toLocaleString("en-IN")}/sqft`;
+        if (priceStr.includes('negotiable') || priceStr.includes('neg')) {
+          return `${formatted} (Negotiable)`;
+        }
+        return formatted;
+      }
+    }
+
     // Check for crore variants
     if (priceStr.includes('cr') || priceStr.includes('crore')) {
       const numValue = parseFloat(priceStr.replace(/[^\d.]/g, ''));
@@ -68,17 +95,31 @@ const formatPrice = (price) => {
         return `₹${numValue} L`;
       }
     }
-    
-    // Check for other numeric strings
+
+    // Check for other numeric strings with negotiable
     const numericValue = parseFloat(priceStr.replace(/[^\d.]/g, ''));
     if (!isNaN(numericValue)) {
-      // If it's a pure number string, use the original logic
-      return numericValue >= 10000000
-        ? `₹${(numericValue / 10000000).toFixed(2)} Cr`
-        : numericValue >= 100000
-        ? `₹${(numericValue / 100000).toFixed(2)} L`
-        : `₹${numericValue.toLocaleString("en-IN")}`;
+      let formattedPrice;
+      if (numericValue >= 10000000) {
+        formattedPrice = `₹${(numericValue / 10000000).toFixed(2)} Cr`;
+      } else if (numericValue >= 100000) {
+        formattedPrice = `₹${(numericValue / 100000).toFixed(2)} L`;
+      } else {
+        formattedPrice = `₹${numericValue.toLocaleString("en-IN")}`;
+      }
+      
+      // Check if negotiable is mentioned
+      if (priceStr.includes('negotiable') || priceStr.includes('neg')) {
+        return `${formattedPrice} (Negotiable)`;
+      }
+      return formattedPrice;
     }
+
+    // If it's a string we can't parse, return as is (with proper ₹ symbol if missing)
+    if (priceStr.length > 0 && !priceStr.startsWith('₹')) {
+      return `₹${price}`;
+    }
+    return price;
   }
 
   // Handle numeric values
@@ -98,6 +139,7 @@ const formatPrice = (price) => {
     ? `₹${(numericFallback / 100000).toFixed(2)} L`
     : `₹${numericFallback.toLocaleString("en-IN")}`;
 };
+
 
 // Usage in your property creation:
 const formattedPrice = formatPrice(price);

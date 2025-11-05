@@ -128,7 +128,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Quick Links
           <div>
             <h4 className="text-lg font-semibold mb-6 relative">
               Quick Links
@@ -148,7 +148,7 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
-          </div>
+          </div> */}
 
           {/* Contact Info */}
           <div>

@@ -156,14 +156,7 @@ export default function VerifiedProperties() {
 
         {/* Bottom CTA Section */}
         <div className="mt-20 text-center border-t-2 border-black pt-12 pb-9">
-          <p className="text-gray-600 mb-6 text-sm tracking-wider uppercase font-semibold">
-            Looking for Trusted Properties?
-          </p>
-          <button className="inline-flex items-center gap-3 bg-black text-white px-10 py-4 text-sm font-semibold tracking-widest uppercase transition-all duration-300 hover:bg-gray-800 hover:gap-4">
-            <Home className="w-5 h-5" />
-            Browse All Verified Listings
-            <ArrowRight className="w-5 h-5" />
-          </button>
+    
         </div>
       </div>
     </div>

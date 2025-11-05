@@ -428,10 +428,10 @@ useEffect(() => {
   <option value="newest">Newest First</option>
   <option value="oldest">Oldest First</option>
   <option value="name">Name (A-Z)</option>
-  <option value="price-low">Price (Low to High)</option>
+  {/* <option value="price-low">Price (Low to High)</option>
   <option value="price-high">Price (High to Low)</option>
   <option value="area-low">Area (Small to Large)</option>
-  <option value="area-high">Area (Large to Small)</option>
+  <option value="area-high">Area (Large to Small)</option> */}
 </select>
 
 
@@ -504,7 +504,7 @@ useEffect(() => {
                 </select>
               </div>
 
-              <div>
+              {/* <div>
                 <label className="block text-sm font-serif font-medium text-gray-700 mb-2 tracking-wide">
                   <DollarSign className="w-4 h-4 inline mr-1" />
                   Price Range
@@ -521,9 +521,9 @@ useEffect(() => {
                   <option value="200+">Above ₹2Cr</option>
                   <option value="on-request">Price on Request</option>
                 </select>
-              </div>
+              </div> */}
 
-              <div>
+              {/* <div>
                 <label className="block text-sm font-serif font-medium text-gray-700 mb-2 tracking-wide">
                   <Maximize className="w-4 h-4 inline mr-1" />
                   Area (acre)
@@ -539,7 +539,7 @@ useEffect(() => {
                   <option value="50-100">50 - 100 acre</option>
                   <option value="100+">Above 100 acre</option>
                 </select>
-              </div>
+              </div> */}
             </div>
           </div>
         )}

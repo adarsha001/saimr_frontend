@@ -19,8 +19,13 @@ import {
   Maximize,
   Navigation,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Clock,
+  TrendingUp
 } from "lucide-react";
+import Footer from "./Footer";
+import FeaturedProperties from "./FeaturedProperties";
+import VerifiedProperties from "./VerifiedProperties";
 
 export default function PropertyDetail() {
   const { id } = useParams();
@@ -46,7 +51,7 @@ export default function PropertyDetail() {
 
   if (loading)
     return (
-      <div className="min-h-screen bg-gradient-to-br  from-gray-50 to-gray-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-white flex items-center justify-center px-4">
         <div className="text-center">
           <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-gray-900 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600 text-base sm:text-lg font-light tracking-wide">Loading property details...</p>
@@ -56,9 +61,9 @@ export default function PropertyDetail() {
 
   if (!property)
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4 sm:p-6">
+      <div className="min-h-screen bg-white flex items-center justify-center p-4 sm:p-6">
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-2xl p-6 sm:p-8 md:p-12 text-center max-w-md w-full border border-gray-200">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
             <Building className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-gray-600" />
           </div>
           <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-gray-900 mb-3 sm:mb-4 tracking-tight">Property Not Found</h2>
@@ -131,14 +136,27 @@ export default function PropertyDetail() {
     "Gated Boundary": "🚪"
   };
 
-  // Nearby place icons
-  const nearbyIcons = {
-    Highway: "🛣️",
-    Airport: "✈️",
-    BusStop: "🚌",
-    Metro: "🚇",
-    CityCenter: "🏙️",
-    IndustrialArea: "🏭"
+  // Nearby place icons and labels
+  const nearbyConfig = {
+    Highway: { icon: "🛣️", label: "Highway", unit: "km" },
+    Airport: { icon: "✈️", label: "Airport", unit: "km" },
+    BusStop: { icon: "🚌", label: "Bus Stop", unit: "km" },
+    Metro: { icon: "🚇", label: "Metro Station", unit: "km" },
+    CityCenter: { icon: "🏙️", label: "City Center", unit: "km" },
+    IndustrialArea: { icon: "🏭", label: "Industrial Area", unit: "km" }
+  };
+
+  // Distance key icons
+  const distanceKeyIcons = {
+    "Prime Location": "⭐",
+    "City Center": "🏙️",
+    "Industrial Hub": "🏭",
+    "Highway Access": "🛣️",
+    "Developing Area": "🚧",
+    "Rural Area": "🌾",
+    "Commercial Zone": "🏢",
+    "Agricultural Zone": "🌱",
+    "Mixed Use": "🏘️"
   };
 
   const formatDate = (dateString) => {
@@ -190,7 +208,11 @@ export default function PropertyDetail() {
   const embedUrl = getGoogleMapsEmbedUrl();
   const viewUrl = getGoogleMapsViewUrl();
 
-
+  // Check if nearby has any values
+  const hasNearby = nearby && Object.values(nearby).some(value => value !== null && value !== undefined && value !== '');
+  
+  // Check if distanceKey has values
+  const hasDistanceKey = distanceKey && distanceKey.length > 0;
 
   // Render category-specific attributes
   const renderCategoryAttributes = () => {
@@ -286,7 +308,7 @@ export default function PropertyDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-white">
       {/* Header Section */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
@@ -349,8 +371,8 @@ export default function PropertyDetail() {
             </div>
 
             <div className="mt-4 sm:mt-0 lg:text-right">
-              <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-1 sm:mb-2">
-                rs{price}
+              <div className="text-2xl sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-1 sm:mb-2">
+                Price:{price}
               </div>
               {attributes?.square && typeof price === "number" && (
                 <p className="text-xs sm:text-sm text-gray-600 font-light tracking-wide">
@@ -365,7 +387,7 @@ export default function PropertyDetail() {
         </div>
       </div>
 
-      <div className="max-w-7xl  mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6 sm:space-y-8">
@@ -437,6 +459,54 @@ export default function PropertyDetail() {
               </div>
             )}
 
+            {/* Location Insights */}
+            {hasDistanceKey && (
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-6 md:p-8 border border-gray-200">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-gray-900 mb-4 sm:mb-6 tracking-tight">Location Insights</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                  {distanceKey.map((key, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl border border-gray-200 hover:border-gray-300 transition-all"
+                    >
+                      <span className="text-xl sm:text-2xl">{distanceKeyIcons[key] || "📍"}</span>
+                      <span className="font-serif font-medium text-gray-800 tracking-wide text-sm sm:text-base">{key}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Nearby Places */}
+            {hasNearby && (
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-6 md:p-8 border border-gray-200">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-gray-900 mb-4 sm:mb-6 tracking-tight">Nearby Places</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                  {Object.entries(nearby).map(([key, value]) => {
+                    if (value === null || value === undefined || value === '') return null;
+                    
+                    const config = nearbyConfig[key];
+                    if (!config) return null;
+
+                    return (
+                      <div
+                        key={key}
+                        className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl border border-gray-200 hover:border-gray-300 transition-all shadow-sm"
+                      >
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <span className="text-lg sm:text-xl text-white">{config.icon}</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-base sm:text-lg font-serif font-bold text-gray-900">{value} {config.unit}</p>
+                          <p className="text-xs sm:text-sm text-gray-600 font-light tracking-wide">{config.label}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Features */}
             {features?.length > 0 && (
               <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-6 md:p-8 border border-gray-200">
@@ -456,7 +526,6 @@ export default function PropertyDetail() {
             )}
 
             {/* Location & Map */}
-             {/* Location & Map */}
             {(mapUrl || coordinates || propertyLocation) && (
               <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
                 <h2 className="text-3xl font-serif font-bold text-gray-900 mb-6 tracking-tight">Location</h2>
@@ -476,7 +545,7 @@ export default function PropertyDetail() {
                     ></iframe>
                   </div>
                 ) : (
-                  <div className="bg-gray-100 rounded-xl p-12 text-center mb-6 border border-gray-200">
+                  <div className="bg-gray-50 rounded-xl p-12 text-center mb-6 border border-gray-200">
                     <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600 font-serif font-medium tracking-wide">Location map not available</p>
                   </div>
@@ -534,7 +603,7 @@ export default function PropertyDetail() {
               </div>
               
               {user ? (
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 rounded-lg sm:rounded-xl border-2 border-gray-300">
+                <div className="bg-white p-4 sm:p-6 rounded-lg sm:rounded-xl border-2 border-gray-200">
                   <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
                     <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gray-900 rounded-full flex items-center justify-center text-white font-serif font-bold text-xl sm:text-2xl">
                       {createdBy?.name?.charAt(0)?.toUpperCase() || "P"}
@@ -547,7 +616,7 @@ export default function PropertyDetail() {
                   
                   <div className="space-y-3 sm:space-y-4">
                     {createdBy?.gmail && (
-                      <div className="p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl border border-gray-200">
+                      <div className="p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl border border-gray-200">
                         <p className="text-xs text-gray-500 font-serif font-medium uppercase tracking-widest mb-1 sm:mb-2">EMAIL</p>
                         <a 
                           href={`mailto:${createdBy.gmail}`}
@@ -560,7 +629,7 @@ export default function PropertyDetail() {
                     )}
                     
                     {createdBy?.phoneNumber && (
-                      <div className="p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl border border-gray-200">
+                      <div className="p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl border border-gray-200">
                         <p className="text-xs text-gray-500 font-serif font-medium uppercase tracking-widest mb-1 sm:mb-2">PHONE</p>
                         <a 
                           href={`tel:${createdBy.phoneNumber}`}
@@ -573,15 +642,20 @@ export default function PropertyDetail() {
                     )}
                   </div>
                   
-                  <button className="w-full mt-4 sm:mt-6 bg-gray-900 text-white px-4 py-3 sm:px-6 sm:py-4 rounded-lg sm:rounded-xl hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl font-serif font-semibold tracking-wide text-sm sm:text-base flex items-center justify-center gap-2 sm:gap-3">
-                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                              <a
+      href={`https://wa.me/${createdBy.phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(`Hello, I'm interested in your property: ${title} (${propertyLocation}, ${city})`)}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className=""
+    >  <button className="w-full mt-4 sm:mt-6 bg-gray-900 text-white px-4 py-3 sm:px-6 sm:py-4 rounded-lg sm:rounded-xl hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl font-serif font-semibold tracking-wide text-sm sm:text-base flex items-center justify-center gap-2 sm:gap-3">
+      <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                     Send Message
-                  </button>
+                  </button></a>    
                 </div>
               ) : (
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 md:p-8 rounded-lg sm:rounded-xl border-2 border-gray-300 text-center">
-                  <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
-                    <MessageCircle className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 text-white" />
+                <div className="bg-white p-4 sm:p-6 md:p-8 rounded-lg sm:rounded-xl border-2 border-gray-200 text-center">
+                  <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                    <MessageCircle className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 text-gray-600" />
                   </div>
                   <h4 className="text-lg sm:text-xl font-serif font-bold text-gray-900 mb-3 sm:mb-4 tracking-tight">Login Required</h4>
                   <p className="text-gray-600 mb-4 sm:mb-6 font-light tracking-wide leading-relaxed text-sm sm:text-base">
@@ -638,6 +712,10 @@ export default function PropertyDetail() {
           </div>
         </div>
       </div>
+
+<FeaturedProperties/>
+<VerifiedProperties/>
+      <Footer/>
     </div>
   );
 }
