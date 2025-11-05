@@ -175,13 +175,7 @@ export default function Login() {
           </form>
 
           {/* Footer Links */}
-          <div className="pt-6 flex justify-center gap-6 text-sm text-white/50">
-            <a href="#" className="hover:text-white/80 transition-colors">Privacy</a>
-            <span>•</span>
-            <a href="#" className="hover:text-white/80 transition-colors">Terms</a>
-            <span>•</span>
-            <a href="#" className="hover:text-white/80 transition-colors">Support</a>
-          </div>
+
         </div>
       </div>
     </div>

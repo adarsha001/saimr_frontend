@@ -27,6 +27,7 @@ import AdminEnquiries from "./components/AdminEnquiries";
 // NotFound Component
 import NotFound from "./components/NotFound";
 import ScrollToTop from "./components/ScrollToTop";
+import TermsAndConditionsSaimr from "./components/TermsAndConditions_SAIMR_Groups";
 
 export default function App() {
   return (
@@ -111,6 +112,8 @@ export default function App() {
                   </AdminRoute>
                 }
               />
+
+  <Route path="/terms" element={<TermsAndConditionsSaimr />} />
 
               {/* 404 Not Found Route - Catch all undefined routes */}
               <Route path="*" element={<NotFound />} />

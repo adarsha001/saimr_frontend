@@ -250,9 +250,13 @@ export default function Register() {
               />
               <span className="text-sm text-white/60 group-hover:text-white/80 transition-colors">
                 I agree to the{" "}
-                <a href="#" className="text-white underline">Terms & Conditions</a>
-                {" "}and{" "}
-                <a href="#" className="text-white underline">Privacy Policy</a>
+                       <button
+              type="button"
+              onClick={() => navigate("/terms")}
+              className="text-white underline"
+            >Terms & Conditions</button>
+               
+               
               </span>
             </label>
 
@@ -294,14 +298,7 @@ export default function Register() {
             </button>
           </form>
 
-          {/* Footer Links */}
-          <div className="pt-6 flex justify-center gap-6 text-sm text-white/50">
-            <a href="#" className="hover:text-white/80 transition-colors">Privacy</a>
-            <span>•</span>
-            <a href="#" className="hover:text-white/80 transition-colors">Terms</a>
-            <span>•</span>
-            <a href="#" className="hover:text-white/80 transition-colors">Support</a>
-          </div>
+     
         </div>
       </div>
     </div>
