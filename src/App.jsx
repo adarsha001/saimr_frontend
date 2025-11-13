@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import PropertyList from "./pages/PropertyList";
 import PropertyDetail from "./pages/PropertyDetail";
@@ -7,7 +7,7 @@ import AddProperty from "./pages/AddProperty";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LikesProvider } from "./context/LikesContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
@@ -29,13 +29,19 @@ import NotFound from "./components/NotFound";
 import ScrollToTop from "./components/ScrollToTop";
 import TermsAndConditionsSaimr from "./components/TermsAndConditions_SAIMR_Groups";
 
+// Component to redirect authenticated users away from auth pages
+const PublicRoute = ({ children }) => {
+  const { user } = useAuth();
+  return user ? <Navigate to="/" replace /> : children;
+};
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <LikesProvider>
           <ViewModeProvider>
-             <ScrollToTop />
+            <ScrollToTop />
             <Navbar />
             
             {/* Global Enquiry Form - Shows on all pages except admin */}
@@ -50,8 +56,24 @@ export default function App() {
               <Route path="/properties" element={<PropertyList />} />
               <Route path="/featured" element={<FeaturedProperties />} />
               <Route path="/property/:id" element={<PropertyDetail />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+              
+              {/* Auth Routes - Only accessible when NOT logged in */}
+              <Route 
+                path="/login" 
+                element={
+                  <PublicRoute>
+                    <Login />
+                  </PublicRoute>
+                } 
+              />
+              <Route 
+                path="/register" 
+                element={
+                  <PublicRoute>
+                    <Register />
+                  </PublicRoute>
+                } 
+              />
               
               {/* Protected User Routes */}
               <Route
@@ -113,11 +135,10 @@ export default function App() {
                 }
               />
 
-  <Route path="/terms" element={<TermsAndConditionsSaimr />} />
+              <Route path="/terms" element={<TermsAndConditionsSaimr />} />
 
               {/* 404 Not Found Route - Catch all undefined routes */}
               <Route path="*" element={<NotFound />} />
-      
             </Routes>
           </ViewModeProvider>
         </LikesProvider>

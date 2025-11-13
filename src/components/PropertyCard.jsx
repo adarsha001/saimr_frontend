@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLikes } from "../context/LikesContext";
 import { toast } from "react-hot-toast";
 import { Building, Sprout, Handshake, LandPlot, MapPin, ExternalLink, Ruler } from "lucide-react";
+import { gsap } from "gsap";
 
 export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
   const navigate = useNavigate();
@@ -17,6 +18,10 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
 
   const [showLoginTooltip, setShowLoginTooltip] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  
+  // Refs for GSAP animations
+  const verifiedBadgeRef = useRef(null);
+  const featuredBadgeRef = useRef(null);
 
   // Add comprehensive null checks for the property object
   if (!property || !property._id) {
@@ -39,110 +44,159 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
     isFeatured
   } = property;
 
+  // GSAP animations for badges
+  useEffect(() => {
+    if (isVerified && verifiedBadgeRef.current) {
+      // Staggered animation for verified badge
+      const tl = gsap.timeline();
+      
+      tl.fromTo(verifiedBadgeRef.current, 
+        { 
+          scale: 0,
+          rotation: -10,
+          opacity: 0
+        },
+        { 
+          scale: 1,
+          rotation: 0,
+          opacity: 1,
+          duration: 0.6,
+          ease: "back.out(1.7)"
+        }
+      );
+      
+      // Continuous subtle pulse animation
+      tl.to(verifiedBadgeRef.current, {
+        scale: 1.05,
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      });
+    }
+
+    if (isFeatured && featuredBadgeRef.current) {
+      gsap.fromTo(featuredBadgeRef.current,
+        { 
+          scale: 0,
+          opacity: 0,
+          y: -10
+        },
+        { 
+          scale: 1,
+          opacity: 1,
+          y: 0,
+          duration: 0.5,
+          delay: 0.2,
+          ease: "back.out(1.7)"
+        }
+      );
+    }
+  }, [isVerified, isFeatured]);
+
   // Add null checks for nested properties
   const safeAttributes = attributes || {};
   const safeImages = images || [];
-// Format price - handle numbers, "Price on Request", and string values like "30cr"
-const formatPrice = (price) => {
-  // Handle "Price on Request"
-  if (price === "Price on Request" || price === "price on request" || price === "POR") {
-    return "Price on Request";
-  }
 
-  // Handle string values
-  if (typeof price === 'string') {
-    const priceStr = price.toLowerCase().trim();
-    
-    // Check for per square foot variants
-    const perSqftMatch = priceStr.match(/([\d.,]+)\s*(?:rs?|₹)?\s*\/?\s*(?:sq\s*ft|sqft|per\s*sq\s*ft|per\s*sqft)/i);
-    if (perSqftMatch) {
-      const numValue = parseFloat(perSqftMatch[1].replace(/,/g, ''));
-      if (!isNaN(numValue)) {
-        const formatted = `₹${numValue.toLocaleString("en-IN")}/sqft`;
-        // Check if negotiable is mentioned
-        if (priceStr.includes('negotiable') || priceStr.includes('neg')) {
-          return `${formatted} (Negotiable)`;
+  // Format price - handle numbers, "Price on Request", and string values like "30cr"
+  const formatPrice = (price) => {
+    // Handle "Price on Request"
+    if (price === "Price on Request" || price === "price on request" || price === "POR") {
+      return "Price on Request";
+    }
+
+    // Handle string values
+    if (typeof price === 'string') {
+      const priceStr = price.toLowerCase().trim();
+      
+      // Check for per square foot variants
+      const perSqftMatch = priceStr.match(/([\d.,]+)\s*(?:rs?|₹)?\s*\/?\s*(?:sq\s*ft|sqft|per\s*sq\s*ft|per\s*sqft)/i);
+      if (perSqftMatch) {
+        const numValue = parseFloat(perSqftMatch[1].replace(/,/g, ''));
+        if (!isNaN(numValue)) {
+          const formatted = `₹${numValue.toLocaleString("en-IN")}/sqft`;
+          // Check if negotiable is mentioned
+          if (priceStr.includes('negotiable') || priceStr.includes('neg')) {
+            return `${formatted} (Negotiable)`;
+          }
+          return formatted;
         }
-        return formatted;
       }
-    }
 
-    // Check for "per Sqft" at the end
-    const perSqftEndMatch = priceStr.match(/([\d.,]+)\s*(?:rs?|₹)?\s*per\s*sq\s*ft/i);
-    if (perSqftEndMatch) {
-      const numValue = parseFloat(perSqftEndMatch[1].replace(/,/g, ''));
-      if (!isNaN(numValue)) {
-        const formatted = `₹${numValue.toLocaleString("en-IN")}/sqft`;
-        if (priceStr.includes('negotiable') || priceStr.includes('neg')) {
-          return `${formatted} (Negotiable)`;
+      // Check for "per Sqft" at the end
+      const perSqftEndMatch = priceStr.match(/([\d.,]+)\s*(?:rs?|₹)?\s*per\s*sq\s*ft/i);
+      if (perSqftEndMatch) {
+        const numValue = parseFloat(perSqftEndMatch[1].replace(/,/g, ''));
+        if (!isNaN(numValue)) {
+          const formatted = `₹${numValue.toLocaleString("en-IN")}/sqft`;
+          if (priceStr.includes('negotiable') || priceStr.includes('neg')) {
+            return `${formatted} (Negotiable)`;
+          }
+          return formatted;
         }
-        return formatted;
       }
-    }
 
-    // Check for crore variants
-    if (priceStr.includes('cr') || priceStr.includes('crore')) {
-      const numValue = parseFloat(priceStr.replace(/[^\d.]/g, ''));
-      if (!isNaN(numValue)) {
-        return `₹${numValue} Cr`;
-      }
-    }
-    
-    // Check for lakh variants
-    if (priceStr.includes('l') || priceStr.includes('lakh') || priceStr.includes('lac')) {
-      const numValue = parseFloat(priceStr.replace(/[^\d.]/g, ''));
-      if (!isNaN(numValue)) {
-        return `₹${numValue} L`;
-      }
-    }
-
-    // Check for other numeric strings with negotiable
-    const numericValue = parseFloat(priceStr.replace(/[^\d.]/g, ''));
-    if (!isNaN(numericValue)) {
-      let formattedPrice;
-      if (numericValue >= 10000000) {
-        formattedPrice = `₹${(numericValue / 10000000).toFixed(2)} Cr`;
-      } else if (numericValue >= 100000) {
-        formattedPrice = `₹${(numericValue / 100000).toFixed(2)} L`;
-      } else {
-        formattedPrice = `₹${numericValue.toLocaleString("en-IN")}`;
+      // Check for crore variants
+      if (priceStr.includes('cr') || priceStr.includes('crore')) {
+        const numValue = parseFloat(priceStr.replace(/[^\d.]/g, ''));
+        if (!isNaN(numValue)) {
+          return `₹${numValue} Cr`;
+        }
       }
       
-      // Check if negotiable is mentioned
-      if (priceStr.includes('negotiable') || priceStr.includes('neg')) {
-        return `${formattedPrice} (Negotiable)`;
+      // Check for lakh variants
+      if (priceStr.includes('l') || priceStr.includes('lakh') || priceStr.includes('lac')) {
+        const numValue = parseFloat(priceStr.replace(/[^\d.]/g, ''));
+        if (!isNaN(numValue)) {
+          return `₹${numValue} L`;
+        }
       }
-      return formattedPrice;
+
+      // Check for other numeric strings with negotiable
+      const numericValue = parseFloat(priceStr.replace(/[^\d.]/g, ''));
+      if (!isNaN(numericValue)) {
+        let formattedPrice;
+        if (numericValue >= 10000000) {
+          formattedPrice = `₹${(numericValue / 10000000).toFixed(2)} Cr`;
+        } else if (numericValue >= 100000) {
+          formattedPrice = `₹${(numericValue / 100000).toFixed(2)} L`;
+        } else {
+          formattedPrice = `₹${numericValue.toLocaleString("en-IN")}`;
+        }
+        
+        // Check if negotiable is mentioned
+        if (priceStr.includes('negotiable') || priceStr.includes('neg')) {
+          return `${formattedPrice} (Negotiable)`;
+        }
+        return formattedPrice;
+      }
+
+      // If it's a string we can't parse, return as is (with proper ₹ symbol if missing)
+      if (priceStr.length > 0 && !priceStr.startsWith('₹')) {
+        return `₹${price}`;
+      }
+      return price;
     }
 
-    // If it's a string we can't parse, return as is (with proper ₹ symbol if missing)
-    if (priceStr.length > 0 && !priceStr.startsWith('₹')) {
-      return `₹${price}`;
+    // Handle numeric values
+    if (typeof price === 'number') {
+      return price >= 10000000
+        ? `₹${(price / 10000000).toFixed(2)} Cr`
+        : price >= 100000
+        ? `₹${(price / 100000).toFixed(2)} L`
+        : `₹${price.toLocaleString("en-IN")}`;
     }
-    return price;
-  }
 
-  // Handle numeric values
-  if (typeof price === 'number') {
-    return price >= 10000000
-      ? `₹${(price / 10000000).toFixed(2)} Cr`
-      : price >= 100000
-      ? `₹${(price / 100000).toFixed(2)} L`
-      : `₹${price.toLocaleString("en-IN")}`;
-  }
+    // Fallback for other cases
+    const numericFallback = Number(price || 0);
+    return numericFallback >= 10000000
+      ? `₹${(numericFallback / 10000000).toFixed(2)} Cr`
+      : numericFallback >= 100000
+      ? `₹${(numericFallback / 100000).toFixed(2)} L`
+      : `₹${numericFallback.toLocaleString("en-IN")}`;
+  };
 
-  // Fallback for other cases
-  const numericFallback = Number(price || 0);
-  return numericFallback >= 10000000
-    ? `₹${(numericFallback / 10000000).toFixed(2)} Cr`
-    : numericFallback >= 100000
-    ? `₹${(numericFallback / 100000).toFixed(2)} L`
-    : `₹${numericFallback.toLocaleString("en-IN")}`;
-};
-
-
-// Usage in your property creation:
-const formattedPrice = formatPrice(price);
+  const formattedPrice = formatPrice(price);
 
   // Check if property is liked using global state - with null check
   const isLiked = _id ? isPropertyLiked(_id) : false;
@@ -245,6 +299,30 @@ const formattedPrice = formatPrice(price);
     }
   };
 
+  // Enhanced Verified Badge Component
+  const VerifiedBadge = ({ size = "default" }) => (
+    <div
+      ref={verifiedBadgeRef}
+      className={`
+        flex items-center gap-1.5 
+        bg-gradient-to-r from-green-500 to-emerald-600 
+        text-white px-3 py-2 rounded-full 
+        font-semibold shadow-lg border-2 border-white/20
+        backdrop-blur-sm
+        ${size === "large" ? "text-sm px-4 py-2.5" : "text-xs px-3 py-2"}
+      `}
+    >
+      <svg 
+        className={size === "large" ? "w-4 h-4" : "w-3.5 h-3.5"} 
+        fill="currentColor" 
+        viewBox="0 0 20 20"
+      >
+        <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+      </svg>
+      Verified
+    </div>
+  );
+
   // List View Layout
   if (viewMode === "list") {
     return (
@@ -272,16 +350,12 @@ const formattedPrice = formatPrice(price);
 
             {/* Badges */}
             <div className="absolute top-4 left-4 flex flex-col gap-2">
-              {isVerified && (
-                <div className="flex items-center gap-1 bg-black text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  Verified
-                </div>
-              )}
+              {isVerified && <VerifiedBadge size="large" />}
               {isFeatured && (
-                <div className="flex items-center gap-1 bg-gray-800 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">
+                <div 
+                  ref={featuredBadgeRef}
+                  className="flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-2 rounded-full text-xs font-semibold shadow-lg border-2 border-white/20"
+                >
                   ★ Featured
                 </div>
               )}
@@ -396,7 +470,7 @@ const formattedPrice = formatPrice(price);
                     ? "text-gray-600"
                     : "text-gray-900"
                 }`}>
-                  {price}
+                  {formattedPrice}
                 </div>
                 {safeAttributes?.square > 0 && typeof price === 'number' && price > 0 && (
                   <div className="text-xs text-gray-500 mt-1">
@@ -443,16 +517,12 @@ const formattedPrice = formatPrice(price);
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
-          {isVerified && (
-            <div className="flex items-center gap-1 bg-black text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg">
-              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              Verified
-            </div>
-          )}
+          {isVerified && <VerifiedBadge />}
           {isFeatured && (
-            <div className="flex items-center gap-1 bg-gray-800 text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg">
+            <div 
+              ref={featuredBadgeRef}
+              className="flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2.5 py-1.5 rounded-full text-xs font-semibold shadow-lg border-2 border-white/20"
+            >
               ★ Featured
             </div>
           )}
@@ -552,7 +622,7 @@ const formattedPrice = formatPrice(price);
                 ? "text-gray-600"
                 : "text-gray-900"
             }`}>
-              {price}
+              {formattedPrice}
             </div>
             {safeAttributes?.square > 0 && typeof price === 'number' && price > 0 && (
               <div className="text-xs text-gray-500 mt-0.5">
