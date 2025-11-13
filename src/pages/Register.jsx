@@ -52,7 +52,7 @@ export default function Register() {
           {/* Logo/Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <Building2 className="w-10 h-10" />
+              {/* <Building2 className="w-10 h-10" /> */}
               <div>
                 <h1 className="text-3xl font-light tracking-tight">SAIMR</h1>
                 <p className="text-sm text-white/60 tracking-widest">GROUPS</p>
