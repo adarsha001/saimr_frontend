@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchAllProperties, updateProperty } from '../api/adminApi';
+import { fetchPropertyById, updateProperty } from './../api/adminApi';
 
 const PropertyEdit = ({ propertyId, onClose, onUpdate }) => {
   const [property, setProperty] = useState(null);
@@ -15,7 +15,7 @@ const PropertyEdit = ({ propertyId, onClose, onUpdate }) => {
     category: '',
     forSale: true,
     isFeatured: false,
-    isVerified: false, // Add verified field
+    isVerified: false,
     approvalStatus: 'pending',
     displayOrder: 0,
     attributes: {
@@ -42,6 +42,11 @@ const PropertyEdit = ({ propertyId, onClose, onUpdate }) => {
     }
   });
 
+  // Debug form data changes
+  useEffect(() => {
+    console.log('🔄 Form data updated:', formData);
+  }, [formData]);
+
   useEffect(() => {
     if (propertyId) {
       loadProperty();
@@ -51,22 +56,38 @@ const PropertyEdit = ({ propertyId, onClose, onUpdate }) => {
   const loadProperty = async () => {
     setLoading(true);
     try {
-      const response = await fetchAllProperties();
-      const foundProperty = response.data.properties.find(p => p._id === propertyId);
-      if (foundProperty) {
+      console.log('📥 Loading property with ID:', propertyId);
+      
+      const response = await fetchPropertyById(propertyId);
+      
+      if (response.data.success) {
+        const foundProperty = response.data.property;
+        console.log('✅ Property loaded successfully:', {
+          title: foundProperty.title,
+          category: foundProperty.category,
+          price: foundProperty.price,
+          hasAttributes: !!foundProperty.attributes,
+          hasNearby: !!foundProperty.nearby
+        });
         setProperty(foundProperty);
         initializeFormData(foundProperty);
+      } else {
+        throw new Error(response.data.message || 'Failed to load property');
       }
     } catch (error) {
-      console.error('Error loading property:', error);
-      alert('Error loading property details');
+      console.error('❌ Error loading property:', error);
+      alert('Error loading property details: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
 
   const initializeFormData = (propertyData) => {
-    setFormData({
+    // Ensure nested objects exist
+    const attributes = propertyData.attributes || {};
+    const nearby = propertyData.nearby || {};
+    
+    const initialFormData = {
       title: propertyData.title || '',
       description: propertyData.description || '',
       content: propertyData.content || '',
@@ -76,31 +97,41 @@ const PropertyEdit = ({ propertyId, onClose, onUpdate }) => {
       category: propertyData.category || '',
       forSale: propertyData.forSale !== undefined ? propertyData.forSale : true,
       isFeatured: propertyData.isFeatured || false,
-      isVerified: propertyData.isVerified || false, // Initialize verified field
+      isVerified: propertyData.isVerified || false,
       approvalStatus: propertyData.approvalStatus || 'pending',
       displayOrder: propertyData.displayOrder || 0,
       attributes: {
-        square: propertyData.attributes?.square || '',
-        propertyLabel: propertyData.attributes?.propertyLabel || '',
-        leaseDuration: propertyData.attributes?.leaseDuration || '',
-        typeOfJV: propertyData.attributes?.typeOfJV || '',
-        expectedROI: propertyData.attributes?.expectedROI || '',
-        irrigationAvailable: propertyData.attributes?.irrigationAvailable || false,
-        facing: propertyData.attributes?.facing || '',
-        roadWidth: propertyData.attributes?.roadWidth || '',
-        waterSource: propertyData.attributes?.waterSource || '',
-        soilType: propertyData.attributes?.soilType || '',
-        legalClearance: propertyData.attributes?.legalClearance || false
+        square: attributes.square || '',
+        propertyLabel: attributes.propertyLabel || '',
+        leaseDuration: attributes.leaseDuration || '',
+        typeOfJV: attributes.typeOfJV || '',
+        expectedROI: attributes.expectedROI || '',
+        irrigationAvailable: attributes.irrigationAvailable || false,
+        facing: attributes.facing || '',
+        roadWidth: attributes.roadWidth || '',
+        waterSource: attributes.waterSource || '',
+        soilType: attributes.soilType || '',
+        legalClearance: attributes.legalClearance || false
       },
-      features: propertyData.features || [],
+      features: Array.isArray(propertyData.features) ? propertyData.features : [],
       nearby: {
-        Highway: propertyData.nearby?.Highway || '',
-        Airport: propertyData.nearby?.Airport || '',
-        BusStop: propertyData.nearby?.BusStop || '',
-        Metro: propertyData.nearby?.Metro || '',
-        CityCenter: propertyData.nearby?.CityCenter || '',
-        IndustrialArea: propertyData.nearby?.IndustrialArea || ''
+        Highway: nearby.Highway || '',
+        Airport: nearby.Airport || '',
+        BusStop: nearby.BusStop || '',
+        Metro: nearby.Metro || '',
+        CityCenter: nearby.CityCenter || '',
+        IndustrialArea: nearby.IndustrialArea || ''
       }
+    };
+    
+    setFormData(initialFormData);
+    
+    console.log('📝 Form data initialized:', {
+      category: propertyData.category,
+      price: initialFormData.price,
+      attributes: initialFormData.attributes,
+      features: initialFormData.features,
+      nearby: initialFormData.nearby
     });
   };
 
@@ -142,38 +173,27 @@ const PropertyEdit = ({ propertyId, onClose, onUpdate }) => {
         : [...prev.features, feature]
     }));
   };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    
-    try {
-      const cleanedData = cleanFormData(formData);
-      await updateProperty(propertyId, cleanedData);
-      alert('Property updated successfully!');
-      onUpdate?.();
-      onClose?.();
-    } catch (error) {
-      console.error('Error updating property:', error);
-      alert('Error updating property');
-    } finally {
-      setSaving(false);
-    }
-  };
-
 const cleanFormData = (data) => {
-  // Create a deep copy to avoid mutation issues
+  // Create a deep copy
   const cleanedData = JSON.parse(JSON.stringify(data));
   
-  // Basic cleaning
-  cleanedData.price = data.price === '' ? 0 : data.price;
-  cleanedData.displayOrder = data.displayOrder === '' ? 0 : data.displayOrder;
+  // Keep price exactly as entered - no conversion
+  // Only ensure it's a string
+  if (typeof cleanedData.price !== 'string') {
+    cleanedData.price = String(cleanedData.price || '');
+  }
+  
+  // Basic field cleaning
+  cleanedData.displayOrder = data.displayOrder === '' ? 0 : Number(data.displayOrder);
   
   // Ensure attributes object exists
   cleanedData.attributes = cleanedData.attributes || {};
   
-  // Clean individual attributes - don't remove empty strings, convert to undefined
-  const attributeFields = ['square', 'propertyLabel', 'leaseDuration', 'typeOfJV', 'facing', 'roadWidth', 'waterSource', 'soilType'];
+  // Clean individual attributes - convert empty strings to undefined
+  const attributeFields = [
+    'square', 'propertyLabel', 'leaseDuration', 'typeOfJV', 
+    'facing', 'roadWidth', 'waterSource', 'soilType'
+  ];
   
   attributeFields.forEach(field => {
     if (cleanedData.attributes[field] === '') {
@@ -181,38 +201,91 @@ const cleanFormData = (data) => {
     }
   });
   
-  // Handle numeric fields
+  // Handle numeric fields for expectedROI - keep as string if it contains text
   if (cleanedData.attributes.expectedROI === '') {
     cleanedData.attributes.expectedROI = undefined;
   }
   
-  // Handle boolean fields - ensure they're always defined for JD/JV
-  if (cleanedData.attributes.irrigationAvailable === undefined) {
-    cleanedData.attributes.irrigationAvailable = false;
+  // Handle acre field conversion - keep as string if it contains text
+  if (cleanedData.attributes.square) {
+    // Only convert to number if it's purely numeric
+    if (!isNaN(cleanedData.attributes.square) && cleanedData.attributes.square !== '') {
+      cleanedData.attributes.square = Number(cleanedData.attributes.square);
+    }
+    // Otherwise keep as string (e.g., "5 acres", "10 hectares")
   }
-  if (cleanedData.attributes.legalClearance === undefined) {
-    cleanedData.attributes.legalClearance = false;
-  }
+  
+  // Handle boolean fields
+  cleanedData.attributes.irrigationAvailable = Boolean(cleanedData.attributes.irrigationAvailable);
+  cleanedData.attributes.legalClearance = Boolean(cleanedData.attributes.legalClearance);
 
-  // CRITICAL FIX: Always include typeOfJV for JD/JV properties, even if empty
+  // CRITICAL: Ensure typeOfJV for JD/JV properties
   if (cleanedData.category === 'JD/JV') {
     cleanedData.attributes.typeOfJV = cleanedData.attributes.typeOfJV || 'General Partnership';
-    console.log('✅ Ensured typeOfJV for JD/JV:', cleanedData.attributes.typeOfJV);
   }
 
-  // Clean nearby distances
-  cleanedData.nearby = Object.fromEntries(
-    Object.entries(data.nearby).map(([key, value]) => [key, value === '' ? undefined : value])
-  );
+  // Clean nearby distances - convert to numbers if they are numeric
+  cleanedData.nearby = {};
+  Object.entries(data.nearby).forEach(([key, value]) => {
+    if (value === '' || value === undefined) {
+      cleanedData.nearby[key] = undefined;
+    } else if (!isNaN(value) && value !== '') {
+      cleanedData.nearby[key] = Number(value);
+    } else {
+      cleanedData.nearby[key] = value; // Keep as string if not numeric
+    }
+  });
+
+  // Clean features array
+  if (!Array.isArray(cleanedData.features)) {
+    cleanedData.features = [];
+  }
 
   console.log('🧹 Final cleaned data:', {
     category: cleanedData.category,
+    price: cleanedData.price,
+    priceType: typeof cleanedData.price,
     attributes: cleanedData.attributes,
-    typeOfJV: cleanedData.attributes.typeOfJV
+    nearby: cleanedData.nearby,
+    features: cleanedData.features
   });
 
   return cleanedData;
 };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    
+    try {
+      const cleanedData = cleanFormData(formData);
+      console.log('📤 Sending update data:', cleanedData);
+      
+      const response = await updateProperty(propertyId, cleanedData);
+      
+      if (response.data.success) {
+        console.log('✅ Property updated successfully:', response.data.property);
+        alert('Property updated successfully!');
+        onUpdate?.();
+        onClose?.();
+      } else {
+        throw new Error(response.data.message || 'Update failed');
+      }
+    } catch (error) {
+      console.error('Error updating property:', error);
+      
+      // Show specific error messages
+      if (error.response?.data?.errors) {
+        const errorMessages = error.response.data.errors.join('\n');
+        alert(`Update failed:\n${errorMessages}`);
+      } else {
+        alert(`Error updating property: ${error.message}`);
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const featureOptions = {
     Commercial: [
       "Conference Room", "CCTV Surveillance", "Power Backup", "Fire Safety",
@@ -259,10 +332,12 @@ const cleanFormData = (data) => {
             <p className="text-sm text-gray-600 mt-1">
               {property?.title} - {property?.city}
             </p>
+            <p className="text-xs text-gray-500">ID: {propertyId}</p>
           </div>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors p-2"
+            disabled={saving}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -283,6 +358,7 @@ const cleanFormData = (data) => {
                   value={formData.title}
                   onChange={handleInputChange}
                   required
+                  placeholder="Enter property title"
                 />
                 
                 <FormField
@@ -308,6 +384,7 @@ const cleanFormData = (data) => {
                   value={formData.city}
                   onChange={handleInputChange}
                   required
+                  placeholder="Enter city"
                 />
 
                 <FormField
@@ -317,6 +394,7 @@ const cleanFormData = (data) => {
                   value={formData.price}
                   onChange={handleInputChange}
                   required
+                  placeholder="e.g., 30 Crore, 50 Lakh, $1.5 Million"
                 />
 
                 <div className="md:col-span-2">
@@ -327,6 +405,7 @@ const cleanFormData = (data) => {
                     value={formData.description}
                     onChange={handleInputChange}
                     rows={3}
+                    placeholder="Enter property description"
                   />
                 </div>
 
@@ -337,6 +416,7 @@ const cleanFormData = (data) => {
                     type="text"
                     value={formData.propertyLocation}
                     onChange={handleInputChange}
+                    placeholder="Enter full address"
                   />
                 </div>
               </div>
@@ -346,11 +426,12 @@ const cleanFormData = (data) => {
             <Section title="Property Attributes">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
-                  label="acre"
+                  label="Area/Size"
                   name="square"
                   type="text"
                   value={formData.attributes.square}
                   onChange={handleAttributeChange}
+                  placeholder="e.g., 5 acres, 10 hectares, 2000 sq ft"
                 />
 
                 <FormField
@@ -359,16 +440,19 @@ const cleanFormData = (data) => {
                   type="text"
                   value={formData.attributes.propertyLabel}
                   onChange={handleAttributeChange}
+                  placeholder="e.g., Premium, Budget, Luxury"
                 />
 
                 {formData.category === 'JD/JV' && (
                   <div className="md:col-span-2">
                     <FormField
-                      label="Type of JV"
+                      label="Type of JV *"
                       name="typeOfJV"
                       type="text"
                       value={formData.attributes.typeOfJV}
                       onChange={handleAttributeChange}
+                      required
+                      placeholder="e.g., General Partnership, LLC, Joint Development"
                     />
                   </div>
                 )}
@@ -381,6 +465,7 @@ const cleanFormData = (data) => {
                     step="0.1"
                     value={formData.attributes.expectedROI}
                     onChange={handleAttributeChange}
+                    placeholder="Expected return on investment percentage"
                   />
                 )}
 
@@ -392,6 +477,7 @@ const cleanFormData = (data) => {
                       type="text"
                       value={formData.attributes.soilType}
                       onChange={handleAttributeChange}
+                      placeholder="e.g., Loamy, Clay, Sandy, Black Soil"
                     />
                     <CheckboxField
                       label="Irrigation Available"
@@ -410,6 +496,42 @@ const cleanFormData = (data) => {
                     onChange={handleAttributeChange}
                   />
                 )}
+
+                <FormField
+                  label="Facing Direction"
+                  name="facing"
+                  type="text"
+                  value={formData.attributes.facing}
+                  onChange={handleAttributeChange}
+                  placeholder="e.g., East, North, Road-facing"
+                />
+
+                <FormField
+                  label="Road Width"
+                  name="roadWidth"
+                  type="text"
+                  value={formData.attributes.roadWidth}
+                  onChange={handleAttributeChange}
+                  placeholder="e.g., 40 ft, 60 ft, Wide Road"
+                />
+
+                <FormField
+                  label="Water Source"
+                  name="waterSource"
+                  type="text"
+                  value={formData.attributes.waterSource}
+                  onChange={handleAttributeChange}
+                  placeholder="e.g., Municipal, Borewell, Canal, Well"
+                />
+
+                <FormField
+                  label="Lease Duration"
+                  name="leaseDuration"
+                  type="text"
+                  value={formData.attributes.leaseDuration}
+                  onChange={handleAttributeChange}
+                  placeholder="e.g., 5 years, 10 years, 99 years"
+                />
               </div>
             </Section>
 
@@ -425,20 +547,23 @@ const cleanFormData = (data) => {
                   />
                 ))}
               </div>
+              {getCurrentFeatures().length === 0 && (
+                <p className="text-gray-500 text-sm">No features available for {formData.category} category</p>
+              )}
             </Section>
 
             {/* Nearby Locations Section */}
-            <Section title="Nearby Locations (km)">
+            <Section title="Nearby Locations">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {Object.entries(formData.nearby).map(([key, value]) => (
                   <FormField
                     key={key}
-                    label={key}
+                    label={`${key} Distance`}
                     name={key}
-                    type="number"
-                    step="0.1"
+                    type="text"
                     value={value}
                     onChange={handleNearbyChange}
+                    placeholder={`e.g., 5 km, 2 miles, Nearby`}
                   />
                 ))}
               </div>
@@ -466,6 +591,7 @@ const cleanFormData = (data) => {
                   type="number"
                   value={formData.displayOrder}
                   onChange={handleInputChange}
+                  placeholder="Lower numbers show first"
                 />
 
                 <div className="flex flex-col space-y-3">
@@ -497,6 +623,7 @@ const cleanFormData = (data) => {
                 type="button"
                 onClick={onClose}
                 className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                disabled={saving}
               >
                 Cancel
               </button>
@@ -527,7 +654,7 @@ const Section = ({ title, children }) => (
 );
 
 // Reusable Form Field Component
-const FormField = ({ label, name, type = 'text', value, onChange, options = [], required = false, ...props }) => (
+const FormField = ({ label, name, type = 'text', value, onChange, options = [], required = false, placeholder, ...props }) => (
   <div>
     <label className="block text-sm font-medium text-gray-700 mb-2">
       {label}
@@ -554,6 +681,7 @@ const FormField = ({ label, name, type = 'text', value, onChange, options = [], 
         onChange={onChange}
         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         rows={props.rows || 3}
+        placeholder={placeholder}
       />
     ) : (
       <input
@@ -563,6 +691,7 @@ const FormField = ({ label, name, type = 'text', value, onChange, options = [], 
         onChange={onChange}
         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         required={required}
+        placeholder={placeholder}
         {...props}
       />
     )}

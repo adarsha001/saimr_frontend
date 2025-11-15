@@ -137,19 +137,18 @@ const formatPrice = (price) => {
       }
     }
 
-    // Check for per acre variants - more specific matching
+    // Check for per acre variants
     const perAcreMatch = pricePart.match(/([\d.,]+)\s*(?:rs?|₹)?\s*\/?\s*(?:acre)/i);
     if (perAcreMatch) {
       const numValue = parseFloat(perAcreMatch[1].replace(/,/g, ''));
       if (!isNaN(numValue)) {
-        // Handle lakhs per acre
-        if (pricePart.includes('l') || pricePart.includes('lakh') || pricePart.includes('lac')) {
-          return `₹${numValue} L/acre`;
+        // Keep crores as crores for acre
+        if (pricePart.includes('cr') || pricePart.includes('crore')) {
+          return `₹${numValue} Cr/acre`;
         }
-        // Handle crores per acre - convert to lakhs
-        else if (pricePart.includes('cr') || pricePart.includes('crore')) {
-          const lakhValue = numValue * 100;
-          return `₹${lakhValue} L/acre`;
+        // Keep lakhs as lakhs for acre
+        else if (pricePart.includes('l') || pricePart.includes('lakh') || pricePart.includes('lac')) {
+          return `₹${numValue} L/acre`;
         }
         else {
           const formatted = `₹${numValue.toLocaleString("en-IN")}/acre`;
@@ -166,10 +165,9 @@ const formatPrice = (price) => {
     if (croreMatch) {
       const numValue = parseFloat(croreMatch[1].replace(/,/g, ''));
       if (!isNaN(numValue)) {
-        // If it's for acre, convert to lakhs
+        // Keep crores as crores even for acre
         if (pricePart.includes('acre')) {
-          const lakhValue = numValue * 100;
-          return `₹${lakhValue} L/acre`;
+          return `₹${numValue} Cr/acre`;
         }
         return `₹${numValue} Cr`;
       }
@@ -180,7 +178,7 @@ const formatPrice = (price) => {
     if (lakhMatch) {
       const numValue = parseFloat(lakhMatch[1].replace(/,/g, ''));
       if (!isNaN(numValue)) {
-        // If it's for acre, keep as lakhs
+        // Keep lakhs as lakhs for acre
         if (pricePart.includes('acre')) {
           return `₹${numValue} L/acre`;
         }
@@ -200,14 +198,8 @@ const formatPrice = (price) => {
         } else if (unit.includes('l')) {
           return `₹${numValue} L`;
         } else {
-          // No unit specified, auto-detect based on value
-          if (numValue >= 10000000) {
-            return `₹${(numValue / 10000000).toFixed(2)} Cr`;
-          } else if (numValue >= 100000) {
-            return `₹${(numValue / 100000).toFixed(2)} L`;
-          } else {
-            return `₹${numValue.toLocaleString("en-IN")}`;
-          }
+          // No unit specified, keep as is without auto-conversion
+          return `₹${numValue.toLocaleString("en-IN")}`;
         }
       }
     }
@@ -216,13 +208,9 @@ const formatPrice = (price) => {
     const numericValue = parseFloat(pricePart.replace(/[^\d.]/g, ''));
     if (!isNaN(numericValue)) {
       let formattedPrice;
-      if (numericValue >= 10000000) {
-        formattedPrice = `₹${(numericValue / 10000000).toFixed(2)} Cr`;
-      } else if (numericValue >= 100000) {
-        formattedPrice = `₹${(numericValue / 100000).toFixed(2)} L`;
-      } else {
-        formattedPrice = `₹${numericValue.toLocaleString("en-IN")}`;
-      }
+      
+      // Just format with commas, no unit conversion
+      formattedPrice = `₹${numericValue.toLocaleString("en-IN")}`;
       
       // Check if negotiable is mentioned
       if (pricePart.includes('negotiable') || pricePart.includes('neg')) {
@@ -235,24 +223,15 @@ const formatPrice = (price) => {
     return pricePart;
   }
 
-  // Handle numeric values
+  // Handle numeric values - just format with commas, no unit conversion
   if (typeof price === 'number') {
-    return price >= 10000000
-      ? `₹${(price / 10000000).toFixed(2)} Cr`
-      : price >= 100000
-      ? `₹${(price / 100000).toFixed(2)} L`
-      : `₹${price.toLocaleString("en-IN")}`;
+    return `₹${price.toLocaleString("en-IN")}`;
   }
 
   // Fallback for other cases
   const numericFallback = Number(price || 0);
-  return numericFallback >= 10000000
-    ? `₹${(numericFallback / 10000000).toFixed(2)} Cr`
-    : numericFallback >= 100000
-    ? `₹${(numericFallback / 100000).toFixed(2)} L`
-    : `₹${numericFallback.toLocaleString("en-IN")}`;
+  return `₹${numericFallback.toLocaleString("en-IN")}`;
 };
-
 
   const formattedPrice = formatPrice(price);
 

@@ -339,6 +339,14 @@ export const fetchHourlyDistribution = async (timeframe = '7d', groupBy = 'hour'
     throw error;
   }
 };
+// ✅ FIXED: Get property by ID for editing
+export const fetchPropertyById = (id) => 
+  fetchWithRetry(() => API.get(`/properties/${id}`));
+
+// // ✅ FIXED: Update property
+// export const updateProperty = (id, data) => 
+//   API.put(`/properties/${id}`, data);
+
 
 // ==================== TEST ENDPOINT ====================
 
