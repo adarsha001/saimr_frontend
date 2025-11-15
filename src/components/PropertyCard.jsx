@@ -98,103 +98,161 @@ export default function PropertyCard({ property, viewMode, getCategoryIcon }) {
   const safeAttributes = attributes || {};
   const safeImages = images || [];
 
-  // Format price - handle numbers, "Price on Request", and string values like "30cr"
-  const formatPrice = (price) => {
-    // Handle "Price on Request"
-    if (price === "Price on Request" || price === "price on request" || price === "POR") {
-      return "Price on Request";
+const formatPrice = (price) => {
+  // Handle "Price on Request" in any form
+  const priceStr = typeof price === 'string' ? price.toLowerCase().trim() : '';
+  
+  if (priceStr.includes('price on request') || priceStr.includes('por')) {
+    return "Price on Request";
+  }
+
+  // Handle string values
+  if (typeof price === 'string') {
+    // Extract only the price part (before any "|" or other separators)
+    const pricePart = priceStr.split('|')[0].trim();
+    
+    // Check for per square foot variants
+    const perSqftMatch = pricePart.match(/([\d.,]+)\s*(?:rs?|₹)?\s*\/?\s*(?:sq\s*ft|sqft|per\s*sq\s*ft|per\s*sqft)/i);
+    if (perSqftMatch) {
+      const numValue = parseFloat(perSqftMatch[1].replace(/,/g, ''));
+      if (!isNaN(numValue)) {
+        const formatted = `₹${numValue.toLocaleString("en-IN")}/sqft`;
+        if (pricePart.includes('negotiable') || pricePart.includes('neg')) {
+          return `${formatted} (Negotiable)`;
+        }
+        return formatted;
+      }
     }
 
-    // Handle string values
-    if (typeof price === 'string') {
-      const priceStr = price.toLowerCase().trim();
+    // Check for "per Sqft" at the end
+    const perSqftEndMatch = pricePart.match(/([\d.,]+)\s*(?:rs?|₹)?\s*per\s*sq\s*ft/i);
+    if (perSqftEndMatch) {
+      const numValue = parseFloat(perSqftEndMatch[1].replace(/,/g, ''));
+      if (!isNaN(numValue)) {
+        const formatted = `₹${numValue.toLocaleString("en-IN")}/sqft`;
+        if (pricePart.includes('negotiable') || pricePart.includes('neg')) {
+          return `${formatted} (Negotiable)`;
+        }
+        return formatted;
+      }
+    }
+
+    // Check for per acre variants - more specific matching
+    const perAcreMatch = pricePart.match(/([\d.,]+)\s*(?:rs?|₹)?\s*\/?\s*(?:acre)/i);
+    if (perAcreMatch) {
+      const numValue = parseFloat(perAcreMatch[1].replace(/,/g, ''));
+      if (!isNaN(numValue)) {
+        // Handle lakhs per acre
+        if (pricePart.includes('l') || pricePart.includes('lakh') || pricePart.includes('lac')) {
+          return `₹${numValue} L/acre`;
+        }
+        // Handle crores per acre - convert to lakhs
+        else if (pricePart.includes('cr') || pricePart.includes('crore')) {
+          const lakhValue = numValue * 100;
+          return `₹${lakhValue} L/acre`;
+        }
+        else {
+          const formatted = `₹${numValue.toLocaleString("en-IN")}/acre`;
+          if (pricePart.includes('negotiable') || pricePart.includes('neg')) {
+            return `${formatted} (Negotiable)`;
+          }
+          return formatted;
+        }
+      }
+    }
+
+    // More specific crore detection with proper number extraction
+    const croreMatch = pricePart.match(/([\d.,]+)\s*(?:cr|crore)/i);
+    if (croreMatch) {
+      const numValue = parseFloat(croreMatch[1].replace(/,/g, ''));
+      if (!isNaN(numValue)) {
+        // If it's for acre, convert to lakhs
+        if (pricePart.includes('acre')) {
+          const lakhValue = numValue * 100;
+          return `₹${lakhValue} L/acre`;
+        }
+        return `₹${numValue} Cr`;
+      }
+    }
+
+    // More specific lakh detection with proper number extraction
+    const lakhMatch = pricePart.match(/([\d.,]+)\s*(?:l|lakh|lac)/i);
+    if (lakhMatch) {
+      const numValue = parseFloat(lakhMatch[1].replace(/,/g, ''));
+      if (!isNaN(numValue)) {
+        // If it's for acre, keep as lakhs
+        if (pricePart.includes('acre')) {
+          return `₹${numValue} L/acre`;
+        }
+        return `₹${numValue} L`;
+      }
+    }
+
+    // Check for simple numeric values with units (more precise)
+    const simpleNumberMatch = pricePart.match(/^₹?([\d.,]+)\s*(cr|crore|l|lakh|lac)?/i);
+    if (simpleNumberMatch) {
+      const numValue = parseFloat(simpleNumberMatch[1].replace(/,/g, ''));
+      const unit = simpleNumberMatch[2] ? simpleNumberMatch[2].toLowerCase() : '';
       
-      // Check for per square foot variants
-      const perSqftMatch = priceStr.match(/([\d.,]+)\s*(?:rs?|₹)?\s*\/?\s*(?:sq\s*ft|sqft|per\s*sq\s*ft|per\s*sqft)/i);
-      if (perSqftMatch) {
-        const numValue = parseFloat(perSqftMatch[1].replace(/,/g, ''));
-        if (!isNaN(numValue)) {
-          const formatted = `₹${numValue.toLocaleString("en-IN")}/sqft`;
-          // Check if negotiable is mentioned
-          if (priceStr.includes('negotiable') || priceStr.includes('neg')) {
-            return `${formatted} (Negotiable)`;
-          }
-          return formatted;
-        }
-      }
-
-      // Check for "per Sqft" at the end
-      const perSqftEndMatch = priceStr.match(/([\d.,]+)\s*(?:rs?|₹)?\s*per\s*sq\s*ft/i);
-      if (perSqftEndMatch) {
-        const numValue = parseFloat(perSqftEndMatch[1].replace(/,/g, ''));
-        if (!isNaN(numValue)) {
-          const formatted = `₹${numValue.toLocaleString("en-IN")}/sqft`;
-          if (priceStr.includes('negotiable') || priceStr.includes('neg')) {
-            return `${formatted} (Negotiable)`;
-          }
-          return formatted;
-        }
-      }
-
-      // Check for crore variants
-      if (priceStr.includes('cr') || priceStr.includes('crore')) {
-        const numValue = parseFloat(priceStr.replace(/[^\d.]/g, ''));
-        if (!isNaN(numValue)) {
+      if (!isNaN(numValue)) {
+        if (unit.includes('cr')) {
           return `₹${numValue} Cr`;
+        } else if (unit.includes('l')) {
+          return `₹${numValue} L`;
+        } else {
+          // No unit specified, auto-detect based on value
+          if (numValue >= 10000000) {
+            return `₹${(numValue / 10000000).toFixed(2)} Cr`;
+          } else if (numValue >= 100000) {
+            return `₹${(numValue / 100000).toFixed(2)} L`;
+          } else {
+            return `₹${numValue.toLocaleString("en-IN")}`;
+          }
         }
+      }
+    }
+
+    // Check for other numeric strings with negotiable
+    const numericValue = parseFloat(pricePart.replace(/[^\d.]/g, ''));
+    if (!isNaN(numericValue)) {
+      let formattedPrice;
+      if (numericValue >= 10000000) {
+        formattedPrice = `₹${(numericValue / 10000000).toFixed(2)} Cr`;
+      } else if (numericValue >= 100000) {
+        formattedPrice = `₹${(numericValue / 100000).toFixed(2)} L`;
+      } else {
+        formattedPrice = `₹${numericValue.toLocaleString("en-IN")}`;
       }
       
-      // Check for lakh variants
-      if (priceStr.includes('l') || priceStr.includes('lakh') || priceStr.includes('lac')) {
-        const numValue = parseFloat(priceStr.replace(/[^\d.]/g, ''));
-        if (!isNaN(numValue)) {
-          return `₹${numValue} L`;
-        }
+      // Check if negotiable is mentioned
+      if (pricePart.includes('negotiable') || pricePart.includes('neg')) {
+        return `${formattedPrice} (Negotiable)`;
       }
-
-      // Check for other numeric strings with negotiable
-      const numericValue = parseFloat(priceStr.replace(/[^\d.]/g, ''));
-      if (!isNaN(numericValue)) {
-        let formattedPrice;
-        if (numericValue >= 10000000) {
-          formattedPrice = `₹${(numericValue / 10000000).toFixed(2)} Cr`;
-        } else if (numericValue >= 100000) {
-          formattedPrice = `₹${(numericValue / 100000).toFixed(2)} L`;
-        } else {
-          formattedPrice = `₹${numericValue.toLocaleString("en-IN")}`;
-        }
-        
-        // Check if negotiable is mentioned
-        if (priceStr.includes('negotiable') || priceStr.includes('neg')) {
-          return `${formattedPrice} (Negotiable)`;
-        }
-        return formattedPrice;
-      }
-
-      // If it's a string we can't parse, return as is (with proper ₹ symbol if missing)
-      if (priceStr.length > 0 && !priceStr.startsWith('₹')) {
-        return `₹${price}`;
-      }
-      return price;
+      return formattedPrice;
     }
 
-    // Handle numeric values
-    if (typeof price === 'number') {
-      return price >= 10000000
-        ? `₹${(price / 10000000).toFixed(2)} Cr`
-        : price >= 100000
-        ? `₹${(price / 100000).toFixed(2)} L`
-        : `₹${price.toLocaleString("en-IN")}`;
-    }
+    // If it's a string we can't parse, return the original price part
+    return pricePart;
+  }
 
-    // Fallback for other cases
-    const numericFallback = Number(price || 0);
-    return numericFallback >= 10000000
-      ? `₹${(numericFallback / 10000000).toFixed(2)} Cr`
-      : numericFallback >= 100000
-      ? `₹${(numericFallback / 100000).toFixed(2)} L`
-      : `₹${numericFallback.toLocaleString("en-IN")}`;
-  };
+  // Handle numeric values
+  if (typeof price === 'number') {
+    return price >= 10000000
+      ? `₹${(price / 10000000).toFixed(2)} Cr`
+      : price >= 100000
+      ? `₹${(price / 100000).toFixed(2)} L`
+      : `₹${price.toLocaleString("en-IN")}`;
+  }
+
+  // Fallback for other cases
+  const numericFallback = Number(price || 0);
+  return numericFallback >= 10000000
+    ? `₹${(numericFallback / 10000000).toFixed(2)} Cr`
+    : numericFallback >= 100000
+    ? `₹${(numericFallback / 100000).toFixed(2)} L`
+    : `₹${numericFallback.toLocaleString("en-IN")}`;
+};
+
 
   const formattedPrice = formatPrice(price);
 

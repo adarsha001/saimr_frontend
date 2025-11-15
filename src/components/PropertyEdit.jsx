@@ -161,23 +161,58 @@ const PropertyEdit = ({ propertyId, onClose, onUpdate }) => {
     }
   };
 
-  const cleanFormData = (data) => {
-    return {
-      ...data,
-      price: data.price === '' ? 0 : data.price,
-      displayOrder: data.displayOrder === '' ? 0 : data.displayOrder,
-      attributes: {
-        ...data.attributes,
-        square: data.attributes.square === '' ? undefined : data.attributes.square,
-        roadWidth: data.attributes.roadWidth === '' ? undefined : data.attributes.roadWidth,
-        expectedROI: data.attributes.expectedROI === '' ? undefined : data.attributes.expectedROI
-      },
-      nearby: Object.fromEntries(
-        Object.entries(data.nearby).map(([key, value]) => [key, value === '' ? undefined : value])
-      )
-    };
-  };
+const cleanFormData = (data) => {
+  // Create a deep copy to avoid mutation issues
+  const cleanedData = JSON.parse(JSON.stringify(data));
+  
+  // Basic cleaning
+  cleanedData.price = data.price === '' ? 0 : data.price;
+  cleanedData.displayOrder = data.displayOrder === '' ? 0 : data.displayOrder;
+  
+  // Ensure attributes object exists
+  cleanedData.attributes = cleanedData.attributes || {};
+  
+  // Clean individual attributes - don't remove empty strings, convert to undefined
+  const attributeFields = ['square', 'propertyLabel', 'leaseDuration', 'typeOfJV', 'facing', 'roadWidth', 'waterSource', 'soilType'];
+  
+  attributeFields.forEach(field => {
+    if (cleanedData.attributes[field] === '') {
+      cleanedData.attributes[field] = undefined;
+    }
+  });
+  
+  // Handle numeric fields
+  if (cleanedData.attributes.expectedROI === '') {
+    cleanedData.attributes.expectedROI = undefined;
+  }
+  
+  // Handle boolean fields - ensure they're always defined for JD/JV
+  if (cleanedData.attributes.irrigationAvailable === undefined) {
+    cleanedData.attributes.irrigationAvailable = false;
+  }
+  if (cleanedData.attributes.legalClearance === undefined) {
+    cleanedData.attributes.legalClearance = false;
+  }
 
+  // CRITICAL FIX: Always include typeOfJV for JD/JV properties, even if empty
+  if (cleanedData.category === 'JD/JV') {
+    cleanedData.attributes.typeOfJV = cleanedData.attributes.typeOfJV || 'General Partnership';
+    console.log('✅ Ensured typeOfJV for JD/JV:', cleanedData.attributes.typeOfJV);
+  }
+
+  // Clean nearby distances
+  cleanedData.nearby = Object.fromEntries(
+    Object.entries(data.nearby).map(([key, value]) => [key, value === '' ? undefined : value])
+  );
+
+  console.log('🧹 Final cleaned data:', {
+    category: cleanedData.category,
+    attributes: cleanedData.attributes,
+    typeOfJV: cleanedData.attributes.typeOfJV
+  });
+
+  return cleanedData;
+};
   const featureOptions = {
     Commercial: [
       "Conference Room", "CCTV Surveillance", "Power Backup", "Fire Safety",
