@@ -561,22 +561,22 @@ export default function PropertyList() {
               </p>
 
               {/* Trust Badges */}
-              <div className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-2 sm:gap-4 lg:gap-6 mb-6 sm:mb-8 lg:mb-12 px-2 sm:px-4">
-                <div className="px-2 py-2 sm:px-4 sm:py-3 lg:px-6 lg:py-4 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl lg:rounded-2xl border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-300">
-                  <div className="text-lg sm:text-2xl lg:text-3xl font-serif font-bold text-white">{totalCount}+</div>
-                  <div className="text-xs sm:text-xs lg:text-sm text-gray-300 font-serif tracking-wide">Properties</div>
-                </div>
-                
-                <div className="px-2 py-2 sm:px-4 sm:py-3 lg:px-6 lg:py-4 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl lg:rounded-2xl border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-300">
-                  <div className="text-lg sm:text-2xl lg:text-3xl font-serif font-bold text-white">{getCities().length}+</div>
-                  <div className="text-xs sm:text-xs lg:text-sm text-gray-300 font-serif tracking-wide">Cities</div>
-                </div>
-                
-                <div className="px-2 py-2 sm:px-4 sm:py-3 lg:px-6 lg:py-4 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl lg:rounded-2xl border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-300">
-                  <div className="text-lg sm:text-2xl lg:text-3xl font-serif font-bold text-white">100%</div>
-                  <div className="text-xs sm:text-xs lg:text-sm text-gray-300 font-serif tracking-wide">Verified</div>
-                </div>
-              </div>
+     <div className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-2 sm:gap-4 lg:gap-6 mb-6 sm:mb-8 lg:mb-12 px-2 sm:px-4">
+  <div className="px-2 py-2 sm:px-4 sm:py-3 lg:px-6 lg:py-4 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl lg:rounded-2xl border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-300">
+    <div className="text-lg sm:text-2xl lg:text-3xl font-serif font-bold text-white">{totalCount}+</div>
+    <div className="text-xs sm:text-xs lg:text-sm text-gray-300 font-serif tracking-wide">Properties</div>
+  </div>
+  
+  <div className="px-2 py-2 sm:px-4 sm:py-3 lg:px-6 lg:py-4 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl lg:rounded-2xl border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-300">
+    <div className="text-lg sm:text-2xl lg:text-3xl font-serif font-bold text-white">{getCities().length}+</div>
+    <div className="text-xs sm:text-xs lg:text-sm text-gray-300 font-serif tracking-wide">Cities</div>
+  </div>
+  
+  <div className="col-span-2 sm:col-auto px-2 py-2 sm:px-4 sm:py-3 lg:px-6 lg:py-4 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl lg:rounded-2xl border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-300">
+    <div className="text-lg sm:text-2xl lg:text-3xl font-serif font-bold text-white">100%</div>
+    <div className="text-xs sm:text-xs lg:text-sm text-gray-300 font-serif tracking-wide">Verified</div>
+  </div>
+</div>
             </div>
 
             {/* Main Search Bar */}
